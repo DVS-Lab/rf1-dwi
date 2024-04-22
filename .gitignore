@@ -140,4 +140,5 @@ dmypy.json
 bids/**/*.nii.gz
 derivatives/**/*.nii.gz
 derivatives/**/*.jpg
+derivatives
 *.asv
