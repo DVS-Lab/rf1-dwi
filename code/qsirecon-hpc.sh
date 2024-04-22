@@ -19,6 +19,8 @@ bidsdir=$maindir/bids
 logdir=$maindir/logs
 mkdir -p $logdir
 
+# runs recon on all three specs below. any conflicts on scratch? probably best to run separately
+# mrtrix_multishell_msmt_ACT-hsvs amico_noddi mrtrix_multishell_msmt_pyafq_tractometry 
 
 rm -f $logdir/cmd_qsirecon_${PBS_JOBID}.txt
 touch $logdir/cmd_qsirecon_${PBS_JOBID}.txt
