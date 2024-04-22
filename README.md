@@ -1,2 +1,5 @@
-# rf1-dwi
-processing and analyses for diffusion-weighted imaging
+# DWI Processing and Analyses
+
+Analyses and processing for DWI using QSIprep.
+
+To be expanded by Jamie and Cooper...
