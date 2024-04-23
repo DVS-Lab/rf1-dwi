@@ -34,8 +34,8 @@ singularity run --cleanenv \
 /input /base/derivatives \
 participant --participant_label $sub \
 --output-resolution 2 \
---nthreads 12 \
 --fs-license-file /opts/fs_license.txt \
 --do-reconall \
 -w /scratch
 
+# --nthreads 12 \
