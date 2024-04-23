@@ -38,3 +38,4 @@ participant --participant_label $sub \
 --recon_spec amico_noddi \
 --fs-license-file /opts/fs_license.txt \
 -w /scratch
+
