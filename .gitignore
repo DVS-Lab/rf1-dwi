@@ -142,3 +142,5 @@ derivatives/**/*.nii.gz
 derivatives/**/*.jpg
 derivatives
 *.asv
+bids
+
