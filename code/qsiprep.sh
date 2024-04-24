@@ -38,3 +38,6 @@ participant --participant_label $sub \
 -w /scratch
 
 # --nthreads 12 \
+# add hmc-model 3dSHORE?
+
+
