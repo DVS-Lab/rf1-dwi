@@ -12,7 +12,7 @@ scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
 # input data. update for cluster
-inputdata=/ZPOOL/data/projects/rf1-datapaper-dev/bids
+inputdata=/ZPOOL/data/projects/rf1-sra-data/bids
 
 
 # make derivatives folder if it doesn't exist.
@@ -43,5 +43,6 @@ participant --participant_label $sub \
 --me-output-echos \
 --use-syn-sdc \
 --output-spaces fsLR MNI152NLin6Asym \
+--cifti-output \
 --bids-filter-file /base/code/fmriprep_config.json \
 --fs-license-file /opts/fs_license.txt -w /scratch
