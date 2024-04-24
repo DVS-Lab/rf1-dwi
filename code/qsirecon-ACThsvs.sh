@@ -36,7 +36,7 @@ participant --participant_label $sub \
 --output-resolution 2 \
 --recon_input /base/derivatives/qsiprep \
 --recon_spec mrtrix_multishell_msmt_ACT-hsvs \
---freesurfer-input /base/derivatives/freesurfer \
+--freesurfer-input /base/derivatives/fmriprep/sourcedata/freesurfer \
 --fs-license-file /opts/fs_license.txt \
 -w /scratch
 
