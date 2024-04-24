@@ -5,7 +5,7 @@ scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
 # input data. update for cluster
-inputdata=/ZPOOL/data/projects/rf1-sra-data/bids
+inputdata=/ZPOOL/data/projects/rf1-dwi/bids
 
 sub=$1
 
