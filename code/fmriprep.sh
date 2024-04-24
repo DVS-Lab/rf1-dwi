@@ -11,6 +11,10 @@ sub=$1
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
+# input data. update for cluster
+inputdata=/ZPOOL/data/projects/rf1-datapaper-dev/bids
+
+
 # make derivatives folder if it doesn't exist.
 # let's keep this out of bids for now
 if [ ! -d $maindir/derivatives ]; then
@@ -28,11 +32,12 @@ export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 
 singularity run --cleanenv \
 -B ${TEMPLATEFLOW_DIR}:/opt/templateflow \
+-B $inputdata:/input \
 -B $maindir:/base \
 -B /ZPOOL/data/tools/licenses:/opts \
 -B $scratchdir:/scratch \
 /ZPOOL/data/tools/fmriprep-23.2.1.simg \
-/base/bids /base/derivatives/fmriprep \
+/input /base/derivatives/fmriprep \
 participant --participant_label $sub \
 --stop-on-first-crash \
 --me-output-echos \
