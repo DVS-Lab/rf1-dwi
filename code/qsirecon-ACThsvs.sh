@@ -30,7 +30,7 @@ singularity run --cleanenv \
 -B $maindir:/base \
 -B /ZPOOL/data/tools/licenses:/opts \
 -B $scratchdir:/scratch \
-/ZPOOL/data/tools/qsiprep-0.20.0.simg \
+/ZPOOL/data/tools/qsiprep-0.21.1.simg \
 /input /base/derivatives/qsirecon-ACThsvs \
 participant --participant_label $sub \
 --output-resolution 2 \
