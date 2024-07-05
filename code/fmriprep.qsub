@@ -41,11 +41,12 @@ export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
 for sub in ${subjects[@]}; do
 	echo singularity run --cleanenv \
 	-B ${TEMPLATEFLOW_DIR}:/opt/templateflow \
+	-B ${MPLCONFIGDIR_DIR}:/opt/mplconfigdir \
 	-B $maindir:/base \
 	-B ~/work/tools/licenses:/opts \
 	-B $scratchdir:/scratch \
 	~/work/tools/fmriprep-23.2.1.simg \
-	/input /base/derivatives/fmriprep \
+	/base/bids /base/derivatives/fmriprep \
 	participant --participant_label $sub \
 	--stop-on-first-crash \
 	--output-spaces fsLR MNI152NLin6Asym \
