@@ -12,5 +12,5 @@ while [ $counter -lt ${#myArray[@]} ]; do
 	subjects=${myArray[@]:$counter:$ntasks}
 	echo $subjects
 	let counter=$counter+$ntasks
-	qsub -v subjects="${subjects[@]}" fmriprep.qsub
+	qsub -v subjects="${subjects[@]}" qsirecon.qsub
 done
