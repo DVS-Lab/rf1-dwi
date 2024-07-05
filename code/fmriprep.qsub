@@ -41,7 +41,6 @@ export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
 for sub in ${subjects[@]}; do
 	echo singularity run --cleanenv \
 	-B ${TEMPLATEFLOW_DIR}:/opt/templateflow \
-	-B $inputdata:/input \
 	-B $maindir:/base \
 	-B ~/work/tools/licenses:/opts \
 	-B $scratchdir:/scratch \
