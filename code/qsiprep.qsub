@@ -49,7 +49,6 @@ for sub in ${subjects[@]}; do
 	/base/bids /base/derivatives \
 	participant --participant_label $sub \
 	--output-resolution 2 \
-	--nthreads 7 \
 	--fs-license-file /opts/fs_license.txt \
 	-w /scratch >> $logdir/cmd_qsiprep_${PBS_JOBID}.txt
 done

@@ -6,7 +6,7 @@ scriptdir=$maindir/code
 
 mapfile -t myArray < ${scriptdir}/sublist.txt
 
-ntasks=12
+ntasks=4
 counter=0
 while [ $counter -lt ${#myArray[@]} ]; do
 	subjects=${myArray[@]:$counter:$ntasks}
