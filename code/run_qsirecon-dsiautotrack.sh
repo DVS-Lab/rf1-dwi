@@ -8,9 +8,9 @@ mapfile -t myArray < ${scriptdir}/sublist.txt
 
 # make array based on what actually needs to be run
 for sub in ${myArray[@]}; do
-	dwi=${maindir}/derivatives/qsirecon-tmp/qsirecon-NODDI/${sub}/dwi/${sub}_space-T1w_desc-preproc_model-noddi_mdp-od_dwimap.nii.gz
-	html=${maindir}/derivatives/qsirecon-tmp/qsirecon/${sub}.html
-	if [ ! -e $dwi ] || [ ! -e $html ]; then
+	slines=${maindir}/derivatives/qsirecon-dsiautotrack/qsirecon-DSIStudio/${sub}/dwi/${sub}_space-T1w_desc-preproc_bundle-ProjectionBasalGanglia_FornixR_streamlines.tck
+	html=${maindir}/derivatives/qsirecon-dsiautotrack/qsirecon/${sub}.html
+	if [ ! -e $slines ] || [ ! -e $html ]; then
 		missingSubs+=( $sub )
 	fi
 done
