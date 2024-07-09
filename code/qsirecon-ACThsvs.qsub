@@ -53,6 +53,7 @@ for sub in ${subjects[@]}; do
 	--recon_spec mrtrix_multishell_msmt_ACT-hsvs \
 	--freesurfer-input /base/derivatives/fmriprep/sourcedata/freesurfer \
 	--fs-license-file /opts/fs_license.txt \
+	--skip_bids_validation \
 	-w /scratch >> $logdir/cmd_qsirecon_${PBS_JOBID}.txt
 done
 
