@@ -39,7 +39,7 @@ export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
 
 
 for sub in ${subjects[@]}; do
-	echo singularity run --cleanenv \
+	echo singularity run --cleanenv --writable-tmpfs \
 	-B ${TEMPLATEFLOW_DIR}:/opt/templateflow \
 	-B ${MPLCONFIGDIR_DIR}:/opt/mplconfigdir \
 	-B $maindir:/base \
@@ -49,8 +49,10 @@ for sub in ${subjects[@]}; do
 	/base/bids /base/derivatives/qsirecon-ACThsvs \
 	participant --participant_label $sub \
 	--output-resolution 2 \
-	--recon_input /base/derivatives/qsiprep \
-	--recon_spec mrtrix_multishell_msmt_ACT-hsvs \
+	--recon-input /base/derivatives/qsiprep \
+	--recon-spec mrtrix_multishell_msmt_ACT-hsvs \
+	--recon-only \
+	--stop-on-first-crash \
 	--freesurfer-input /base/derivatives/fmriprep/sourcedata/freesurfer \
 	--fs-license-file /opts/fs_license.txt \
 	--skip_bids_validation \
