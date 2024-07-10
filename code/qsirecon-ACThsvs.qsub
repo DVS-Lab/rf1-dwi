@@ -60,5 +60,7 @@ for sub in ${subjects[@]}; do
 	-w /scratch >> $logdir/cmd_qsirecon_${PBS_JOBID}.txt
 done
 
+# note: broken till the issues below are closed:
+# https://github.com/PennLINC/qsiprep/issues/718
 
 torque-launch -p $logdir/chk_qsirecon_${PBS_JOBID}.txt $logdir/cmd_qsirecon_${PBS_JOBID}.txt
