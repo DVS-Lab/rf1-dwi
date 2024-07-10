@@ -56,6 +56,7 @@ for sub in ${subjects[@]}; do
 	--freesurfer-input /base/derivatives/fmriprep/sourcedata/freesurfer \
 	--fs-license-file /opts/fs_license.txt \
 	--skip_bids_validation \
+	--n-cpus 7 --omp-nthreads 6 \
 	-w /scratch >> $logdir/cmd_qsirecon_${PBS_JOBID}.txt
 done
 

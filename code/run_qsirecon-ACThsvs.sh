@@ -15,7 +15,7 @@ for sub in ${myArray[@]}; do
 	fi
 done
 
-ntasks=10
+ntasks=7
 counter=0
 while [ $counter -lt ${#missingSubs[@]} ]; do
 	subjects=${missingSubs[@]:$counter:$ntasks}
