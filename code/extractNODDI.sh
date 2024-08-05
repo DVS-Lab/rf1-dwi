@@ -9,19 +9,21 @@ scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
 
+# subject list
 mapfile -t myArray < ${scriptdir}/sublist.txt
+
+# output files
+csvfile=${maindir}/derivatives/noddi-summary.csv
+rm -rf $csvfile
+touch $csvfile
+echo "subject,od-leftHipp,od-rightHipp,od-pcc,icvf-leftHipp,icvf-rightHipp,icvf-pcc,isovf-leftHipp,isovf-rightHipp,isovf-pcc" >> $csvfile
+
+# make output directory (useful for debugging)
+mainoutput=${maindir}/derivatives/noddi-masks
+mkdir -p $mainoutput
+
 for sub in ${myArray[@]}; do
-	
-	# make output directory
-	mainoutput=${maindir}/derivatives/noddi-masks
-	mkdir -p $mainoutput
-	
-	
-	csvfile=${maindir}/derivatives/noddi-summary.csv
-	rm -rf $csvfile
-	touch $csvfile
-	echo "subject,od-leftHipp,od-rightHipp,od-pcc,icvf-leftHipp,icvf-rightHipp,icvf-pcc,isovf-leftHipp,isovf-rightHipp,isovf-pcc" >> $csvfile
-	
+		
 	od=${maindir}/derivatives/qsirecon-noddi/qsirecon-NODDI/${sub}/dwi/${sub}_space-T1w_desc-preproc_model-noddi_mdp-od_dwimap.nii.gz
 	icvf=${maindir}/derivatives/qsirecon-noddi/qsirecon-NODDI/${sub}/dwi/${sub}_space-T1w_desc-preproc_model-noddi_mdp-icvf_dwimap.nii.gz
 	isovf=${maindir}/derivatives/qsirecon-noddi/qsirecon-NODDI/${sub}/dwi/${sub}_space-T1w_desc-preproc_model-noddi_mdp-isovf_dwimap.nii.gz
@@ -54,5 +56,5 @@ for sub in ${myArray[@]}; do
 	isovfpcc=`fslstats $isovf -k ${mainoutput}/${sub}_roi-PCC_2mm.nii.gz -m`
 	
 	echo "$sub,$odleftHipp,$odrightHipp,$odpcc,$icvfleftHipp,$icvfrightHipp,$icvfpcc,$isovfleftHipp,$isovfrightHipp,$isovfpcc" >> $csvfile
-
+	echo "finished: ${od}"
 done
