@@ -137,10 +137,14 @@ dmypy.json
 .heudiconv
 
 # imaging output
-bids/**/*.nii.gz
-derivatives/**/*.nii.gz
-derivatives/**/*.jpg
-derivatives
+derivatives/fmriprep
+derivatives/noddi-masks
+derivatives/qsiprep
+derivatives/qsirecon-ACThsvs
+derivatives/qsirecon-dsiautotrack
+derivatives/qsirecon-noddi
+derivatives/qsirecon-tractometry
+
 *.asv
 bids
 
