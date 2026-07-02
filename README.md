@@ -16,8 +16,25 @@ The scripts assume the standard Linux2 paths:
 - Project checkout: current repository root
 - Tools: `/ZPOOL/data/tools`
 - Scratch: `/ZPOOL/data/scratch/<user>`
-- QSIPrep image: `/ZPOOL/data/tools/qsiprep-0.21.4.sif`
+- QSIPrep image: `/ZPOOL/data/tools/qsiprep-26.0.0.sif`
 - FreeSurfer license: `/ZPOOL/data/tools/licenses/fs_license.txt`
+
+Build the pinned QSIPrep container before running the workflow:
+
+```bash
+cd /ZPOOL/data/tools
+apptainer build qsiprep-26.0.0.sif docker://pennlinc/qsiprep:26.0.0
+apptainer exec qsiprep-26.0.0.sif qsiprep --version
+```
+
+If this Linux2 shell uses `singularity` instead of `apptainer`, the equivalent
+commands are:
+
+```bash
+cd /ZPOOL/data/tools
+singularity build qsiprep-26.0.0.sif docker://pennlinc/qsiprep:26.0.0
+singularity exec qsiprep-26.0.0.sif qsiprep --version
+```
 
 For the first small test, use the two subjects from the fMRI CIFTI test that are
 also present in this repository's DWI subject list:
