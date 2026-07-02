@@ -89,7 +89,6 @@ printf ' %q' "${cmd[@]}"
 printf '\n'
 if ((dry_run)); then
   echo "Dry run: not launching QSIPrep."
-  python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$bidsdir" "$qsiprepdir" "$sub" --outputs-only || true
   exit 0
 fi
 

@@ -83,4 +83,13 @@ while IFS= read -r sub; do
   pids+=("$!")
 done < <(dwi_read_subjects "$sublist")
 
-dwi_wait_all "${pids[@]}"
+if ! dwi_wait_all "${pids[@]}"; then
+  if ((dry_run)); then
+    echo "CHECK FAILED: QSIPrep dry-run inputs incomplete for one or more of ${#pids[@]} subject(s)."
+  fi
+  exit 1
+fi
+
+if ((dry_run)); then
+  echo "CHECK PASSED: QSIPrep dry-run inputs and commands ready for ${#pids[@]} subject(s)."
+fi
