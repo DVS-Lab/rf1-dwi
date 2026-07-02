@@ -7,6 +7,7 @@ dwi_script_dir() {
 dwi_load_config() {
   SCRIPT_DIR="$(dwi_script_dir)"
   PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+  BIDS_ROOT="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids"
   TOOLS_ROOT="/ZPOOL/data/tools"
   SCRATCH_ROOT="/ZPOOL/data/scratch"
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"
@@ -40,6 +41,20 @@ dwi_require_dir() {
   local path="$1"
   if [[ ! -d "$path" ]]; then
     printf 'Required directory not found: %s\n' "$path" >&2
+    return 1
+  fi
+}
+
+dwi_require_bids_root() {
+  local bidsdir="$1"
+  if [[ ! -d "$bidsdir" ]]; then
+    printf 'BIDS root not found: %s\n' "$bidsdir" >&2
+    printf 'QSIPrep expects the shared DWI BIDS dataset at BIDS_ROOT from code/pipeline_common.sh.\n' >&2
+    return 1
+  fi
+  if [[ ! -f "${bidsdir}/dataset_description.json" ]]; then
+    printf 'BIDS dataset_description.json not found: %s\n' "${bidsdir}/dataset_description.json" >&2
+    printf 'This usually means %s is not the BIDS dataset root.\n' "$bidsdir" >&2
     return 1
   fi
 }

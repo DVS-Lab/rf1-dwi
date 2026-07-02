@@ -44,7 +44,7 @@ if (($# != 1)); then
 fi
 
 sub="${1#sub-}"
-bidsdir="${PROJECT_ROOT}/bids"
+bidsdir="$BIDS_ROOT"
 derivdir="${PROJECT_ROOT}/derivatives"
 qsiprepdir="${derivdir}/qsiprep"
 scratchdir="${SCRATCH_ROOT}/$(whoami)/qsiprep-sub-${sub}"
@@ -52,6 +52,7 @@ qsiprep_nprocs="${QSIPREP_NPROCS:-$QSIPREP_TOTAL_NPROCS}"
 qsiprep_omp_nthreads="${QSIPREP_OMP_NTHREADS:-8}"
 qsiprep_mem_mb="${QSIPREP_MEM_MB:-$QSIPREP_TOTAL_MEM_MB}"
 
+dwi_require_bids_root "$bidsdir"
 python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$bidsdir" "$qsiprepdir" "$sub" --inputs-only
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$bidsdir" "$qsiprepdir" "$sub" --outputs-only --quiet; then
@@ -67,10 +68,11 @@ cmd=(
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
   -B "${PROJECT_ROOT}:/base"
+  -B "${bidsdir}:/bids"
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
   "$QSIPREP_IMAGE"
-  /base/bids /base/derivatives
+  /bids /base/derivatives
   participant --participant_label "$sub"
   --output-resolution "$QSIPREP_OUTPUT_RESOLUTION"
   --nprocs "$qsiprep_nprocs"

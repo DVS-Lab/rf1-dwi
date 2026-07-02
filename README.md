@@ -14,10 +14,15 @@ The maintained first-pass workflow is:
 The scripts assume the standard Linux2 paths:
 
 - Project checkout: current repository root
+- Shared BIDS root: `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids`
 - Tools: `/ZPOOL/data/tools`
 - Scratch: `/ZPOOL/data/scratch/<user>`
 - QSIPrep image: `/ZPOOL/data/tools/qsiprep-26.0.0.sif`
 - FreeSurfer license: `/ZPOOL/data/tools/licenses/fs_license.txt`
+
+The BIDS DWI dataset is not tracked in Git and should not be duplicated in this
+repository. The QSIPrep scripts bind the shared BIDS root as `/bids` inside the
+container and write outputs to this repository's `derivatives/` directory.
 
 Build the pinned QSIPrep container before running the workflow:
 

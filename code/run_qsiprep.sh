@@ -53,6 +53,7 @@ fi
 
 dwi_require_file "$sublist"
 dwi_require_file "${SCRIPT_DIR}/qsiprep.sh"
+dwi_require_bids_root "$BIDS_ROOT"
 
 if [[ -z "$QSIPREP_NPROCS" ]]; then
   QSIPREP_NPROCS=$((QSIPREP_TOTAL_NPROCS / max_jobs))
