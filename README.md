@@ -22,7 +22,9 @@ The scripts assume the standard Linux2 paths:
 
 The BIDS DWI dataset is not tracked in Git and should not be duplicated in this
 repository. The QSIPrep scripts bind the shared BIDS root as `/bids` inside the
-container and write outputs to this repository's `derivatives/` directory.
+container and write outputs to this repository's `derivatives/qsiprep/`
+directory. Processing derivatives are ignored by Git; compact run records under
+`logs/records/` are intentionally trackable.
 
 Build the pinned QSIPrep container before running the workflow:
 

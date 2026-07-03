@@ -72,7 +72,7 @@ cmd=(
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
   "$QSIPREP_IMAGE"
-  /bids /base/derivatives
+  /bids /base/derivatives/qsiprep
   participant --participant-label "$sub"
   --output-resolution "$QSIPREP_OUTPUT_RESOLUTION"
   --nprocs "$qsiprep_nprocs"
@@ -92,7 +92,7 @@ if ((dry_run)); then
   exit 0
 fi
 
-mkdir -p "$derivdir" "$scratchdir"
+mkdir -p "$qsiprepdir" "$scratchdir"
 dwi_require_file "$QSIPREP_IMAGE"
 dwi_require_file "${LICENSES_DIR}/fs_license.txt"
 "${cmd[@]}"

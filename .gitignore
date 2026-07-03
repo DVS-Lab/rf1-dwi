@@ -138,13 +138,23 @@ dmypy.json
 .heudiconv
 
 # imaging output
-derivatives/fmriprep
-derivatives/noddi-masks
-derivatives/qsiprep
-derivatives/qsirecon-ACThsvs
-derivatives/qsirecon-dsiautotrack
-derivatives/qsirecon-noddi
-derivatives/qsirecon-tractometry
+derivatives/fmriprep/
+derivatives/noddi-masks/
+derivatives/qsiprep/
+derivatives/qsirecon-ACThsvs/
+derivatives/qsirecon-dsiautotrack/
+derivatives/qsirecon-noddi/
+derivatives/qsirecon-tractometry/
+
+# Accidental root-level QSIPrep outputs from using derivatives/ as output_dir.
+derivatives/.bidsignore
+derivatives/dataset_description.json
+derivatives/logs/
+derivatives/sub-*/
+derivatives/sub-*.html
+
+# Keep lightweight summary artifacts trackable when explicitly added.
+!derivatives/noddi-summary.csv
 logs/*
 !logs/records/
 !logs/records/*.md
