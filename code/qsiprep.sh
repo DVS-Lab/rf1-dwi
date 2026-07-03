@@ -73,7 +73,7 @@ cmd=(
   -B "${scratchdir}:/scratch"
   "$QSIPREP_IMAGE"
   /bids /base/derivatives
-  participant --participant_label "$sub"
+  participant --participant-label "$sub"
   --output-resolution "$QSIPREP_OUTPUT_RESOLUTION"
   --nprocs "$qsiprep_nprocs"
   --omp-nthreads "$qsiprep_omp_nthreads"
