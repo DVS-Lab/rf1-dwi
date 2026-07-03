@@ -32,7 +32,8 @@ def check_noddi(out_root: Path, sub: str, quiet: bool) -> int:
         record_missing(missing, str(out_root), quiet)
         return 1
     if not report.is_file():
-        record_missing(missing, str(report), quiet)
+        if not quiet:
+            print(f"WARNING optional QSIRecon report not found: {report}")
     if not sub_root.is_dir():
         record_missing(missing, str(sub_root), quiet)
 

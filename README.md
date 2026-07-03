@@ -132,6 +132,9 @@ bash run_logged.sh --label qsirecon-noddi-smoke -- \
 The initial QSIRecon smoke test uses `--recon-spec amico_noddi` and writes to
 `derivatives/qsirecon-noddi/`. Other recon specs should stay split into their
 own wrappers because they have different dependencies and output checks.
+The NODDI output checker gates on scalar maps and treats the top-level HTML
+report as optional because QSIRecon 26.0.0 may finish successfully without
+writing `sub-*.html` at the output root.
 
 The NODDI wrapper prepares AMICO's required rotation-matrix cache before
 launching QSIRecon. The cache lives under ignored `.cache/dipy/` and is bound
