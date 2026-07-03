@@ -13,6 +13,7 @@ dwi_load_config() {
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"
   MPLCONFIGDIR_HOST="${TOOLS_ROOT}/mplconfigdir"
   LICENSES_DIR="${TOOLS_ROOT}/licenses"
+  DIPY_HOME_HOST="${PROJECT_ROOT}/.cache/dipy"
 
   QSIPREP_VERSION="26.0.0"
   QSIPREP_IMAGE="${TOOLS_ROOT}/qsiprep-${QSIPREP_VERSION}.sif"
@@ -29,6 +30,8 @@ dwi_load_config() {
   QSIRECON_OMP_NTHREADS="${QSIRECON_OMP_NTHREADS:-8}"
   QSIRECON_NPROCS="${QSIRECON_NPROCS:-}"
   QSIRECON_MEM_MB="${QSIRECON_MEM_MB:-}"
+  QSIRECON_AMICO_LMAX="${QSIRECON_AMICO_LMAX:-12}"
+  QSIRECON_AMICO_NDIRS="${QSIRECON_AMICO_NDIRS:-500}"
   FMRIPREP_DERIVATIVES_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep"
   FREESURFER_SUBJECTS_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist.txt"

@@ -133,6 +133,10 @@ The initial QSIRecon smoke test uses `--recon-spec amico_noddi` and writes to
 `derivatives/qsirecon-noddi/`. Other recon specs should stay split into their
 own wrappers because they have different dependencies and output checks.
 
+The NODDI wrapper prepares AMICO's required rotation-matrix cache before
+launching QSIRecon. The cache lives under ignored `.cache/dipy/` and is bound
+into the container as `DIPY_HOME`, so subsequent NODDI reruns can reuse it.
+
 ## Notes
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon

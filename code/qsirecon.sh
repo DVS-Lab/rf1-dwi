@@ -64,6 +64,7 @@ scratchdir="${SCRATCH_ROOT}/$(whoami)/qsirecon-${workflow}-sub-${sub}"
 qsirecon_nprocs="${QSIRECON_NPROCS:-$QSIRECON_TOTAL_NPROCS}"
 qsirecon_omp_nthreads="${QSIRECON_OMP_NTHREADS:-8}"
 qsirecon_mem_mb="${QSIRECON_MEM_MB:-$QSIRECON_TOTAL_MEM_MB}"
+container_dipy_home="/opt/dipy"
 
 dwi_require_dir "$qsiprepdir"
 dwi_require_dir "$FMRIPREP_DERIVATIVES_DIR"
@@ -77,16 +78,39 @@ fi
 
 export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
+export APPTAINERENV_DIPY_HOME="$container_dipy_home"
+export APPTAINERENV_AMICO_LMAX="$QSIRECON_AMICO_LMAX"
+export APPTAINERENV_AMICO_NDIRS="$QSIRECON_AMICO_NDIRS"
 
-cmd=(
-  singularity run --cleanenv --writable-tmpfs
+container_args=(
+  --cleanenv --writable-tmpfs
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
+  -B "${DIPY_HOME_HOST}:${container_dipy_home}"
   -B "${PROJECT_ROOT}:/base"
   -B "${FMRIPREP_DERIVATIVES_DIR}:/smriprep:ro"
   -B "${FREESURFER_SUBJECTS_DIR}:/freesurfer:ro"
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
+)
+
+amico_setup_python='import os
+from dipy.data.fetcher import dipy_home
+import amico.lut
+lmax = int(os.environ.get("AMICO_LMAX", "12"))
+ndirs = int(os.environ.get("AMICO_NDIRS", "500"))
+print(f"Preparing AMICO rotation matrices in {dipy_home} for lmax={lmax}, ndirs={ndirs}", flush=True)
+amico.lut.precompute_rotation_matrices(lmax, ndirs)
+print("AMICO rotation matrices ready.", flush=True)'
+
+amico_setup_cmd=(
+  singularity exec "${container_args[@]}"
+  "$QSIRECON_IMAGE"
+  python -c "$amico_setup_python"
+)
+
+cmd=(
+  singularity run "${container_args[@]}"
   "$QSIRECON_IMAGE"
   /base/derivatives/qsiprep "$container_outdir"
   participant --participant-label "$sub"
@@ -102,6 +126,9 @@ cmd=(
   -w /scratch
 )
 
+printf 'AMICO setup command:'
+printf ' %q' "${amico_setup_cmd[@]}"
+printf '\n'
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
@@ -110,8 +137,9 @@ if ((dry_run)); then
   exit 0
 fi
 
-mkdir -p "$outdir" "$scratchdir"
+mkdir -p "$outdir" "$scratchdir" "$DIPY_HOME_HOST"
 dwi_require_file "$QSIRECON_IMAGE"
 dwi_require_file "${LICENSES_DIR}/fs_license.txt"
+"${amico_setup_cmd[@]}"
 "${cmd[@]}"
 python3 "${SCRIPT_DIR}/check_qsirecon_outputs.py" "$outdir" "$sub" --workflow "$workflow"
