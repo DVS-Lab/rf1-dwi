@@ -7,9 +7,9 @@ dwi_script_dir() {
 dwi_load_config() {
   SCRIPT_DIR="$(dwi_script_dir)"
   PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-  BIDS_ROOT="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids"
-  TOOLS_ROOT="/ZPOOL/data/tools"
-  SCRATCH_ROOT="/ZPOOL/data/scratch"
+  BIDS_ROOT="${BIDS_ROOT:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids}"
+  TOOLS_ROOT="${TOOLS_ROOT:-/ZPOOL/data/tools}"
+  SCRATCH_ROOT="${SCRATCH_ROOT:-/ZPOOL/data/scratch}"
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"
   MPLCONFIGDIR_HOST="${TOOLS_ROOT}/mplconfigdir"
   LICENSES_DIR="${TOOLS_ROOT}/licenses"
@@ -32,8 +32,9 @@ dwi_load_config() {
   QSIRECON_MEM_MB="${QSIRECON_MEM_MB:-}"
   QSIRECON_AMICO_LMAX="${QSIRECON_AMICO_LMAX:-12}"
   QSIRECON_AMICO_NDIRS="${QSIRECON_AMICO_NDIRS:-500}"
-  FMRIPREP_DERIVATIVES_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep"
-  FREESURFER_SUBJECTS_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer"
+  FMRIPREP_DERIVATIVES_DIR="${FMRIPREP_DERIVATIVES_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep}"
+  FREESURFER_SUBJECTS_DIR="${FREESURFER_SUBJECTS_DIR:-${FMRIPREP_DERIVATIVES_DIR}/sourcedata/freesurfer}"
+  FREESURFER_FALLBACK_SUBJECTS_DIR="${FREESURFER_FALLBACK_SUBJECTS_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer}"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist.txt"
 }
 
@@ -63,6 +64,126 @@ dwi_require_dir() {
     printf 'Required directory not found: %s\n' "$path" >&2
     return 1
   fi
+}
+
+dwi_freesurfer_subject_dir() {
+  local subjects_dir="$1"
+  local sub="$2"
+  local candidate
+  for candidate in "${subjects_dir}/${sub}" "${subjects_dir}/sub-${sub}"; do
+    if [[ -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  shopt -s nullglob
+  for candidate in "${subjects_dir}/${sub}_"* "${subjects_dir}/sub-${sub}_ses-"*; do
+    if [[ -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      shopt -u nullglob
+      return 0
+    fi
+  done
+  shopt -u nullglob
+  return 1
+}
+
+dwi_freesurfer_subject_has_hsvs_inputs() {
+  local subject_dir="$1"
+  local missing=0
+  local requirement
+  local hsvs_requirements=(
+    mri/aparc+aseg.mgz
+    mri/brainmask.mgz
+    mri/norm.mgz
+    mri/transforms/talairach.xfm
+    surf/lh.white
+    surf/lh.pial
+    surf/rh.white
+    surf/rh.pial
+  )
+
+  for requirement in "${hsvs_requirements[@]}"; do
+    if [[ ! -e "${subject_dir}/${requirement}" ]]; then
+      missing=1
+    fi
+  done
+  return "$missing"
+}
+
+dwi_print_missing_freesurfer_hsvs_inputs() {
+  local subject_dir="$1"
+  local requirement
+  local hsvs_requirements=(
+    mri/aparc+aseg.mgz
+    mri/brainmask.mgz
+    mri/norm.mgz
+    mri/transforms/talairach.xfm
+    surf/lh.white
+    surf/lh.pial
+    surf/rh.white
+    surf/rh.pial
+  )
+
+  for requirement in "${hsvs_requirements[@]}"; do
+    if [[ ! -e "${subject_dir}/${requirement}" ]]; then
+      printf '    missing %s\n' "${subject_dir}/${requirement}" >&2
+    fi
+  done
+}
+
+dwi_resolve_freesurfer_subjects_dir() {
+  local sub="$1"
+  local require_subject="${2:-0}"
+  local require_hsvs="${3:-0}"
+  local candidates=()
+  local dir
+  local subject_dir
+  local missing_hsvs=()
+
+  candidates+=("$FREESURFER_SUBJECTS_DIR")
+  candidates+=("${FMRIPREP_DERIVATIVES_DIR}/sourcedata/freesurfer")
+  candidates+=("${FMRIPREP_DERIVATIVES_DIR}/freesurfer")
+  candidates+=("$FREESURFER_FALLBACK_SUBJECTS_DIR")
+
+  for dir in "${candidates[@]}"; do
+    [[ -n "$dir" && -d "$dir" ]] || continue
+    if subject_dir="$(dwi_freesurfer_subject_dir "$dir" "$sub")"; then
+      if ((require_hsvs)) && ! dwi_freesurfer_subject_has_hsvs_inputs "$subject_dir"; then
+        missing_hsvs+=("$subject_dir")
+        continue
+      fi
+      printf '%s\n' "$dir"
+      return 0
+    fi
+  done
+
+  if ((require_hsvs)) && ((${#missing_hsvs[@]})); then
+    printf 'FreeSurfer subject found for sub-%s, but required ACT-hsvs inputs are incomplete:\n' "$sub" >&2
+    for subject_dir in "${missing_hsvs[@]}"; do
+      printf '  %s\n' "$subject_dir" >&2
+      dwi_print_missing_freesurfer_hsvs_inputs "$subject_dir"
+    done
+    return 1
+  fi
+
+  if ((require_subject)); then
+    printf 'Required FreeSurfer subject not found for sub-%s. Checked:\n' "$sub" >&2
+    printf '  %s\n' "${candidates[@]}" >&2
+    return 1
+  fi
+
+  for dir in "${candidates[@]}"; do
+    if [[ -n "$dir" && -d "$dir" ]]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+  done
+
+  printf 'Required FreeSurfer subjects directory not found. Checked:\n' >&2
+  printf '  %s\n' "${candidates[@]}" >&2
+  return 1
 }
 
 dwi_require_bids_root() {

@@ -193,7 +193,7 @@ bash run_logged.sh --label qsirecon-tractometry-smoke -- \
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
 reconstruction workflows are distributed separately from QSIPrep and support
 extra derivative datasets plus `--fs-subjects-dir` for already-run anatomical
-outputs. The NODDI wrapper binds the shared fMRIPrep derivatives as `smriprep`
-and the shared FreeSurfer subjects directory for reuse. The qsub-based QSIRecon
-scripts in `code/` are legacy and should be modernized after the QSIPrep smoke
-test passes.
+outputs. The shared QSIRecon wrapper binds the shared fMRIPrep derivatives as
+`smriprep` and reuses the fMRIPrep `sourcedata/freesurfer` subjects directory
+when available, falling back to the legacy shared FreeSurfer derivatives
+directory.

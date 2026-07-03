@@ -65,10 +65,16 @@ qsirecon_nprocs="${QSIRECON_NPROCS:-$QSIRECON_TOTAL_NPROCS}"
 qsirecon_omp_nthreads="${QSIRECON_OMP_NTHREADS:-8}"
 qsirecon_mem_mb="${QSIRECON_MEM_MB:-$QSIRECON_TOTAL_MEM_MB}"
 container_dipy_home="/opt/dipy"
+require_freesurfer_subject=0
+require_freesurfer_hsvs=0
+if [[ "$recon_spec" == *"ACT-hsvs"* ]]; then
+  require_freesurfer_subject=1
+  require_freesurfer_hsvs=1
+fi
 
 dwi_require_dir "$qsiprepdir"
 dwi_require_dir "$FMRIPREP_DERIVATIVES_DIR"
-dwi_require_dir "$FREESURFER_SUBJECTS_DIR"
+freesurfer_subjects_dir="$(dwi_resolve_freesurfer_subjects_dir "$sub" "$require_freesurfer_subject" "$require_freesurfer_hsvs")"
 python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$BIDS_ROOT" "$qsiprepdir" "$sub" --outputs-only
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${SCRIPT_DIR}/check_qsirecon_outputs.py" "$outdir" "$sub" --workflow "$workflow" --quiet; then
@@ -89,7 +95,7 @@ container_args=(
   -B "${DIPY_HOME_HOST}:${container_dipy_home}"
   -B "${PROJECT_ROOT}:/base"
   -B "${FMRIPREP_DERIVATIVES_DIR}:/smriprep:ro"
-  -B "${FREESURFER_SUBJECTS_DIR}:/freesurfer:ro"
+  -B "${freesurfer_subjects_dir}:/freesurfer:ro"
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
 )
@@ -134,6 +140,7 @@ if ((${#amico_setup_cmd[@]})); then
   printf ' %q' "${amico_setup_cmd[@]}"
   printf '\n'
 fi
+printf 'Using FreeSurfer subjects directory: %s\n' "$freesurfer_subjects_dir"
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
