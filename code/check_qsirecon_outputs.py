@@ -59,6 +59,21 @@ def check_required_patterns(
     return missing, counts
 
 
+def check_optional_patterns(
+    out_root: Path,
+    sub: str,
+    optional_patterns: dict[str, list[str]],
+    quiet: bool,
+) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for name, patterns in optional_patterns.items():
+        matches = find_any(out_root, [f"**/sub-{sub}/**/{pattern}" for pattern in patterns])
+        counts[name] = len(matches)
+        if not matches:
+            record_warning(f"optional {name} not found for sub-{sub}", quiet)
+    return counts
+
+
 def print_counts(sub: str, counts: dict[str, int], label: str) -> None:
     count_text = ", ".join(f"{value} {name}" for name, value in counts.items())
     print(f"OUTPUTS sub-{sub}: {count_text} {label}")
@@ -102,12 +117,20 @@ def check_dsiautotrack(out_root: Path, sub: str, quiet: bool) -> int:
     missing, _ = check_base(out_root, sub, quiet)
     required_patterns = {
         "bundle streamlines": ["*bundle-*_streamlines.tck", "*bundle-*_streamlines.tck.gz"],
-        "bundle scalar stats": ["*bundles-DSIStudio*_scalarstats.tsv"],
-        "bundle density stats": ["*bundles-DSIStudio*_tdistats.tsv"],
         "DSI Studio fib": ["*_dwimap.fib.gz"],
     }
     pattern_missing, counts = check_required_patterns(out_root, sub, required_patterns, quiet)
     missing.extend(pattern_missing)
+    optional_counts = check_optional_patterns(
+        out_root,
+        sub,
+        {
+            "bundle scalar stats": ["*bundles-DSIStudio*_scalarstats.tsv"],
+            "bundle density stats": ["*bundles-DSIStudio*_tdistats.tsv"],
+        },
+        quiet,
+    )
+    counts.update(optional_counts)
 
     if not quiet:
         print_counts(sub, counts, "DSI Studio AutoTrack output(s)")

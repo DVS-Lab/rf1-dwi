@@ -173,6 +173,10 @@ bash run_logged.sh --label qsirecon-dsiautotrack-smoke -- \
   --check bash check_qsirecon-dsiautotrack.sh --sublist "$SUBLIST"
 ```
 
+The DSI Studio AutoTrack checker gates on bundle streamlines plus the `.fib.gz`
+file. Bundle summary stats are reported when present, but are not required for
+the smoke-test pass.
+
 For MRtrix/PyAFQ tractometry:
 
 ```bash
