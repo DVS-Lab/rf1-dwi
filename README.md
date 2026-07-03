@@ -43,6 +43,22 @@ singularity build qsiprep-26.0.0.sif docker://pennlinc/qsiprep:26.0.0
 singularity exec qsiprep-26.0.0.sif qsiprep --version
 ```
 
+Build the pinned QSIRecon container before running reconstruction workflows:
+
+```bash
+cd /ZPOOL/data/tools
+apptainer build qsirecon-26.0.0.sif docker://pennlinc/qsirecon:26.0.0
+apptainer exec qsirecon-26.0.0.sif qsirecon --version
+```
+
+Or with `singularity`:
+
+```bash
+cd /ZPOOL/data/tools
+singularity build qsirecon-26.0.0.sif docker://pennlinc/qsirecon:26.0.0
+singularity exec qsirecon-26.0.0.sif qsirecon --version
+```
+
 For the first small test, use the two subjects from the fMRI CIFTI test that are
 also present in this repository's DWI subject list:
 
@@ -87,6 +103,35 @@ budget is 96 CPU threads and 196000 MB RAM, so `--jobs 2` gives each subject
 
 Raw logs are written to ignored `logs/runs/`. Small Markdown run records are
 written to tracked `logs/records/`.
+
+## Linux2 QSIRecon NODDI Smoke Test
+
+Run this after `check_qsiprep.sh` passes for the same subject list:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi/code
+SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
+
+bash run_logged.sh --label qsirecon-noddi-smoke-dry-run -- \
+  bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
+```
+
+If the dry-run passes, launch NODDI and run the checker:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi/code
+SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
+
+bash run_logged.sh --label qsirecon-noddi-smoke -- \
+  bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS" \
+  --check bash check_qsirecon-noddi.sh --sublist "$SUBLIST"
+```
+
+The initial QSIRecon smoke test uses `--recon-spec amico_noddi` and writes to
+`derivatives/qsirecon-noddi/`. Other recon specs should stay split into their
+own wrappers because they have different dependencies and output checks.
 
 ## Notes
 
