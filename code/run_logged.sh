@@ -142,7 +142,14 @@ if [[ -f "$status_file" ]]; then
 fi
 
 summary="$(grep -E 'CHECK (PASSED|FAILED):' "$raw_log" | tail -n 1 || true)"
+[[ -n "$summary" ]] || summary="$(grep -E 'CHECK SKIPPED:' "$raw_log" | tail -n 1 || true)"
 [[ -n "$summary" ]] || summary="No CHECK PASSED/FAILED line found."
+include_tail=0
+if [[ "$COMMAND_STATUS" != "0" ]]; then
+  include_tail=1
+elif [[ "$CHECK_STATUS" != "none" && "$CHECK_STATUS" != "0" ]]; then
+  include_tail=1
+fi
 
 {
   echo "# Run Record: ${label}"
@@ -169,6 +176,23 @@ summary="$(grep -E 'CHECK (PASSED|FAILED):' "$raw_log" | tail -n 1 || true)"
     echo
     echo '```bash'
     echo "$check_string"
+    echo '```'
+  fi
+  if ((include_tail)); then
+    error_lines="$(grep -Ei 'error|traceback|exception|bids|validation|failed|not found|no such file|permission denied' "$raw_log" | tail -n 40 || true)"
+    if [[ -n "$error_lines" ]]; then
+      echo
+      echo "## Error Lines"
+      echo
+      echo '```text'
+      echo "$error_lines"
+      echo '```'
+    fi
+    echo
+    echo "## Log Tail"
+    echo
+    echo '```text'
+    tail -n "${RUN_RECORD_TAIL_LINES:-120}" "$raw_log"
     echo '```'
   fi
 } > "$record"
