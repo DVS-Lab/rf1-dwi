@@ -29,6 +29,7 @@ dwi_load_config() {
   QSIRECON_OMP_NTHREADS="${QSIRECON_OMP_NTHREADS:-8}"
   QSIRECON_NPROCS="${QSIRECON_NPROCS:-}"
   QSIRECON_MEM_MB="${QSIRECON_MEM_MB:-}"
+  FMRIPREP_DERIVATIVES_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep"
   FREESURFER_SUBJECTS_DIR="/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist.txt"
 }

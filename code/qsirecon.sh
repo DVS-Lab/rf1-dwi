@@ -66,6 +66,8 @@ qsirecon_omp_nthreads="${QSIRECON_OMP_NTHREADS:-8}"
 qsirecon_mem_mb="${QSIRECON_MEM_MB:-$QSIRECON_TOTAL_MEM_MB}"
 
 dwi_require_dir "$qsiprepdir"
+dwi_require_dir "$FMRIPREP_DERIVATIVES_DIR"
+dwi_require_dir "$FREESURFER_SUBJECTS_DIR"
 python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$BIDS_ROOT" "$qsiprepdir" "$sub" --outputs-only
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${SCRIPT_DIR}/check_qsirecon_outputs.py" "$outdir" "$sub" --workflow "$workflow" --quiet; then
@@ -81,6 +83,8 @@ cmd=(
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
   -B "${PROJECT_ROOT}:/base"
+  -B "${FMRIPREP_DERIVATIVES_DIR}:/smriprep:ro"
+  -B "${FREESURFER_SUBJECTS_DIR}:/freesurfer:ro"
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
   "$QSIRECON_IMAGE"
@@ -88,6 +92,8 @@ cmd=(
   participant --participant-label "$sub"
   --recon-spec "$recon_spec"
   --input-type qsiprep
+  --datasets smriprep=/smriprep
+  --fs-subjects-dir /freesurfer
   --fs-license-file /opts/fs_license.txt
   --nprocs "$qsirecon_nprocs"
   --omp-nthreads "$qsirecon_omp_nthreads"

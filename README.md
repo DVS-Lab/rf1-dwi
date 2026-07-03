@@ -137,6 +137,8 @@ own wrappers because they have different dependencies and output checks.
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
 reconstruction workflows are distributed separately from QSIPrep and support
-`--fs-subjects-dir` for already-run FreeSurfer outputs. The qsub-based
-QSIRecon scripts in `code/` are legacy and should be modernized after the
-QSIPrep smoke test passes.
+extra derivative datasets plus `--fs-subjects-dir` for already-run anatomical
+outputs. The NODDI wrapper binds the shared fMRIPrep derivatives as `smriprep`
+and the shared FreeSurfer subjects directory for reuse. The qsub-based QSIRecon
+scripts in `code/` are legacy and should be modernized after the QSIPrep smoke
+test passes.
