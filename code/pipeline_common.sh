@@ -31,6 +31,10 @@ dwi_usage() {
 
 dwi_require_file() {
   local path="$1"
+  if [[ -z "$path" ]]; then
+    printf 'Required file path is empty. Check that any shell variables in the command are set.\n' >&2
+    return 1
+  fi
   if [[ ! -f "$path" ]]; then
     printf 'Required file not found: %s\n' "$path" >&2
     return 1
@@ -39,6 +43,10 @@ dwi_require_file() {
 
 dwi_require_dir() {
   local path="$1"
+  if [[ -z "$path" ]]; then
+    printf 'Required directory path is empty. Check that any shell variables in the command are set.\n' >&2
+    return 1
+  fi
   if [[ ! -d "$path" ]]; then
     printf 'Required directory not found: %s\n' "$path" >&2
     return 1

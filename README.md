@@ -50,10 +50,11 @@ mkdir -p logs/dwi-smoke-test
 printf '10317\n10953\n' > logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
 ```
 
-If `bids/sub-11982` exists and you want to include it, append it:
+If the shared BIDS root has `sub-11982` and you want to include it, append it:
 
 ```bash
-test -d bids/sub-11982 && printf '11982\n' >> logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+test -d /ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids/sub-11982 && \
+  printf '11982\n' >> logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
 ```
 
 Dry-run:
@@ -61,8 +62,9 @@ Dry-run:
 ```bash
 cd /ZPOOL/data/projects/rf1-dwi/code
 SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
 bash run_logged.sh --label qsiprep-smoke-dry-run -- \
-  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs 2 --dry-run
+  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
 ```
 
 Run QSIPrep and then run the checker automatically:
@@ -70,8 +72,9 @@ Run QSIPrep and then run the checker automatically:
 ```bash
 cd /ZPOOL/data/projects/rf1-dwi/code
 SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
 bash run_logged.sh --label qsiprep-smoke -- \
-  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs 2 \
+  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS" \
   --check bash check_qsiprep.sh --sublist "$SUBLIST"
 ```
 

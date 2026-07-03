@@ -106,7 +106,7 @@ set +e
   echo
   echo "COMMAND EXIT: ${command_status}"
 
-  if ((${#check_cmd[@]})); then
+  if ((${#check_cmd[@]})) && ((command_status == 0)); then
     echo
     echo "CHECK COMMAND: ${check_string}"
     echo
@@ -114,10 +114,14 @@ set +e
     check_status=$?
     echo
     echo "CHECK EXIT: ${check_status}"
+  elif ((${#check_cmd[@]})); then
+    check_status="skipped"
+    echo
+    echo "CHECK SKIPPED: command failed, so post-run check was not launched."
   fi
 
   final_status="$command_status"
-  if ((check_status != 0)); then
+  if [[ "$check_status" != "skipped" ]] && ((check_status != 0)); then
     final_status="$check_status"
   fi
   {

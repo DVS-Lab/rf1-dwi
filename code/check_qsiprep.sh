@@ -40,7 +40,7 @@ failed=0
 checked=0
 for sub in "${subjects[@]}"; do
   checked=$((checked + 1))
-  if ! python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "${PROJECT_ROOT}/bids" "${PROJECT_ROOT}/derivatives/qsiprep" "$sub" --outputs-only; then
+  if ! python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$BIDS_ROOT" "${PROJECT_ROOT}/derivatives/qsiprep" "$sub" --outputs-only; then
     echo "sub-${sub}: incomplete QSIPrep outputs"
     failed=1
   fi
