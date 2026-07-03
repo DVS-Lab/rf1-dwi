@@ -140,6 +140,50 @@ The NODDI wrapper prepares AMICO's required rotation-matrix cache before
 launching QSIRecon. The cache lives under ignored `.cache/dipy/` and is bound
 into the container as `DIPY_HOME`, so subsequent NODDI reruns can reuse it.
 
+## Additional QSIRecon Smoke Tests
+
+The legacy qsub submission scripts remain in `code/`, but the maintained smoke
+wrappers use the same `run_logged.sh` pattern as NODDI:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi/code
+SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+JOBS=1
+```
+
+For ACT-hsvs:
+
+```bash
+bash run_logged.sh --label qsirecon-ACThsvs-smoke-dry-run -- \
+  bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
+
+bash run_logged.sh --label qsirecon-ACThsvs-smoke -- \
+  bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS" \
+  --check bash check_qsirecon-ACThsvs.sh --sublist "$SUBLIST"
+```
+
+For DSI Studio AutoTrack:
+
+```bash
+bash run_logged.sh --label qsirecon-dsiautotrack-smoke-dry-run -- \
+  bash run_qsirecon-dsiautotrack.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
+
+bash run_logged.sh --label qsirecon-dsiautotrack-smoke -- \
+  bash run_qsirecon-dsiautotrack.sh --sublist "$SUBLIST" --jobs "$JOBS" \
+  --check bash check_qsirecon-dsiautotrack.sh --sublist "$SUBLIST"
+```
+
+For MRtrix/PyAFQ tractometry:
+
+```bash
+bash run_logged.sh --label qsirecon-tractometry-smoke-dry-run -- \
+  bash run_qsirecon-tractometry.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
+
+bash run_logged.sh --label qsirecon-tractometry-smoke -- \
+  bash run_qsirecon-tractometry.sh --sublist "$SUBLIST" --jobs "$JOBS" \
+  --check bash check_qsirecon-tractometry.sh --sublist "$SUBLIST"
+```
+
 ## Notes
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon

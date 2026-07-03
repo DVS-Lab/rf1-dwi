@@ -103,11 +103,14 @@ print(f"Preparing AMICO rotation matrices in {dipy_home} for lmax={lmax}, ndirs=
 amico.lut.precompute_rotation_matrices(lmax, ndirs)
 print("AMICO rotation matrices ready.", flush=True)'
 
-amico_setup_cmd=(
-  singularity exec "${container_args[@]}"
-  "$QSIRECON_IMAGE"
-  python -c "$amico_setup_python"
-)
+amico_setup_cmd=()
+if [[ "$recon_spec" == "amico_noddi" ]]; then
+  amico_setup_cmd=(
+    singularity exec "${container_args[@]}"
+    "$QSIRECON_IMAGE"
+    python -c "$amico_setup_python"
+  )
+fi
 
 cmd=(
   singularity run "${container_args[@]}"
@@ -126,9 +129,11 @@ cmd=(
   -w /scratch
 )
 
-printf 'AMICO setup command:'
-printf ' %q' "${amico_setup_cmd[@]}"
-printf '\n'
+if ((${#amico_setup_cmd[@]})); then
+  printf 'AMICO setup command:'
+  printf ' %q' "${amico_setup_cmd[@]}"
+  printf '\n'
+fi
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
@@ -140,6 +145,8 @@ fi
 mkdir -p "$outdir" "$scratchdir" "$DIPY_HOME_HOST"
 dwi_require_file "$QSIRECON_IMAGE"
 dwi_require_file "${LICENSES_DIR}/fs_license.txt"
-"${amico_setup_cmd[@]}"
+if ((${#amico_setup_cmd[@]})); then
+  "${amico_setup_cmd[@]}"
+fi
 "${cmd[@]}"
 python3 "${SCRIPT_DIR}/check_qsirecon_outputs.py" "$outdir" "$sub" --workflow "$workflow"
