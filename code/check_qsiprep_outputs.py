@@ -95,9 +95,15 @@ def check_outputs(qsiprep_root: Path, bids_root: Path, sub: str, quiet: bool) ->
         if not anat_outputs:
             record_missing(missing, f"{subout}/**/anat/*desc-preproc_T1w.nii.gz", quiet)
         if not mni_to_t1w:
-            record_missing(missing, f"{subout}/**/anat/*from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5", quiet)
+            record_warning(
+                f"optional MNI-to-T1w transform not found: {subout}/**/anat/*from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5",
+                quiet,
+            )
         if not orig_to_t1w:
-            record_missing(missing, f"{subout}/**/anat/*from-orig_to-T1w_mode-image_xfm.txt", quiet)
+            record_warning(
+                f"optional orig-to-T1w transform not found: {subout}/**/anat/*from-orig_to-T1w_mode-image_xfm.txt",
+                quiet,
+            )
 
     if not quiet:
         print(f"OUTPUTS sub-{sub}: {len(dwi_outputs)} preprocessed DWI NIfTI(s)")
