@@ -212,6 +212,22 @@ bash run_logged.sh --label qsirecon-pyafq-interface --include-full-log -- \
   bash debug_qsirecon_pyafq_interface.sh
 ```
 
+The QSIRecon 26.0.0/PyAFQ 2.0 interface diagnostic showed that PyAFQ accepts a
+non-empty scalar list of internal scalar task names, including `dti_fa` and
+`dti_md`, while `reg_subject_spec: dti_fa` is treated as a path-like
+registration target. The next one-subject tractometry diagnostic spec keeps
+`reg_subject_spec: power_map`, uses `odf_model: DTI` to avoid the CSD response
+path, and restores `scalars: "['dti_fa', 'dti_md']"`:
+
+```bash
+bash run_logged.sh --label qsirecon-tractometry-smoke-one-dti-powermap-scalars -- \
+  bash run_qsirecon-tractometry.sh \
+    --sublist ../logs/dwi-smoke-test/sublist-qsirecon-one.txt \
+    --jobs 1 \
+    --overwrite \
+    --recon-spec /base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-powermap-scalars.yaml
+```
+
 ## Notes
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
