@@ -16,7 +16,7 @@ sublist="$BATCH_SUBLIST"
 max_jobs=1
 dry_run=0
 overwrite=0
-tractometry_recon_spec="${QSIRECON_TRACTOMETRY_RECON_SPEC:-/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti.yaml}"
+tractometry_recon_spec="${QSIRECON_TRACTOMETRY_RECON_SPEC:-/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-power-map.yaml}"
 
 while (($#)); do
   case "$1" in
