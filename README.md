@@ -195,11 +195,19 @@ bash run_logged.sh --label qsirecon-tractometry-smoke -- \
 The tractometry wrapper defaults to QSIRecon's built-in
 `mrtrix_multishell_msmt_pyafq_tractometry` spec. Experimental local variants
 remain under `code/recon_specs/` for provenance, including the failed
-CSD-threshold, DTI/`dti_fa`, and DTI/power-map/empty-scalar tests. Do not use
-the empty-scalar variant as a default: installed PyAFQ indexes the first scalar
-entry when `scalars` is provided, so `scalars: "[]"` is invalid in this
-workflow. Set `QSIRECON_TRACTOMETRY_RECON_SPEC` or pass `--recon-spec` only
-after confirming the installed QSIRecon/PyAFQ interface expects that format.
+CSD-threshold, DTI/`dti_fa`, DTI/power-map/empty-scalar, and
+DTI/power-map/scalar-list tests. Do not use the empty-scalar variant as a
+default: installed PyAFQ indexes the first scalar entry when `scalars` is
+provided, so `scalars: "[]"` is invalid in this workflow. The
+DTI/power-map/scalar-list variant also failed because `reg_subject_spec:
+power_map` routes PyAFQ into CSD-derived registration-map generation. Set
+`QSIRECON_TRACTOMETRY_RECON_SPEC` or pass `--recon-spec` only after confirming
+the installed QSIRecon/PyAFQ interface expects that format.
+
+Tractometry is not part of the currently validated smoke-test suite until PyAFQ
+writes actual tractometry products such as profiles, node-wise tables, or
+bundle outputs. MRtrix FODs, SIFT2 weights, and `.tck` streamlines alone are
+intermediate outputs and are not sufficient for a tractometry pass.
 
 If tractometry fails, collect compact diagnostic records before changing more
 parameters:
@@ -215,18 +223,20 @@ bash run_logged.sh --label qsirecon-pyafq-interface --include-full-log -- \
 The QSIRecon 26.0.0/PyAFQ 2.0 interface diagnostic showed that PyAFQ accepts a
 non-empty scalar list of internal scalar task names, including `dti_fa` and
 `dti_md`, while `reg_subject_spec: dti_fa` is treated as a path-like
-registration target. The next one-subject tractometry diagnostic spec keeps
-`reg_subject_spec: power_map`, uses `odf_model: DTI` to avoid the CSD response
-path, and restores `scalars: "['dti_fa', 'dti_md']"`:
+registration target. Before creating another tractometry YAML, inspect the
+installed PyAFQ mapping dictionary and choose a `reg_subject_spec` only from a
+verified non-CSD key:
 
 ```bash
-bash run_logged.sh --label qsirecon-tractometry-smoke-one-dti-powermap-scalars -- \
-  bash run_qsirecon-tractometry.sh \
-    --sublist ../logs/dwi-smoke-test/sublist-qsirecon-one.txt \
-    --jobs 1 \
-    --overwrite \
-    --recon-spec /base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-powermap-scalars.yaml
+bash run_logged.sh --label qsirecon-pyafq-interface-mapping --include-full-log -- \
+  bash debug_qsirecon_pyafq_interface.sh
 ```
+
+If a non-CSD registration target is confirmed, create a one-off test spec that
+keeps `odf_model: DTI`, keeps `scalars: "['dti_fa', 'dti_md']"`, keeps
+`use_external_tracking: true`, and changes only `reg_subject_spec`. Test one
+subject first, then run `check_qsirecon-tractometry.sh` before expanding to the
+two-subject smoke list.
 
 ## Notes
 

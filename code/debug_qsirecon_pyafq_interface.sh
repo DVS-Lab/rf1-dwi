@@ -51,6 +51,7 @@ printf '\n'
 from importlib import metadata
 from pathlib import Path
 import inspect
+from pprint import pprint
 import sys
 
 
@@ -117,6 +118,33 @@ else:
     print_source("qsirecon.workflows.recon.pyafq source", workflow_pyafq)
 
 print_source("AFQ.tasks.data.get_data_plan source", data.get_data_plan)
+
+try:
+    import AFQ.tasks.mapping as mapping
+except Exception as exc:
+    heading("AFQ.tasks.mapping source")
+    print(f"IMPORT FAILED: {exc!r}")
+else:
+    heading("AFQ.tasks.mapping paths")
+    print(f"AFQ.tasks.mapping: {mapping.__file__}")
+    filename_dict = getattr(mapping, "filename_dict", None)
+    heading("AFQ.tasks.mapping.filename_dict")
+    if filename_dict is None:
+        print("filename_dict not found")
+    else:
+        pprint(filename_dict)
+        print("\nfilename_dict keys:")
+        for key in sorted(filename_dict):
+            print(f"- {key}")
+        print("\nSelected registration target mappings:")
+        for key in ("power_map", "b0", "dti_fa", "dti_md", "dki_fa", "dki_md"):
+            print(f"{key}: {filename_dict.get(key, '<missing>')}")
+    get_reg_subject = getattr(mapping, "get_reg_subject", None)
+    if get_reg_subject is None:
+        heading("AFQ.tasks.mapping.get_reg_subject source")
+        print("get_reg_subject not found")
+    else:
+        print_source("AFQ.tasks.mapping.get_reg_subject source", get_reg_subject)
 
 try:
     import AFQ.utils.bin as afq_bin
