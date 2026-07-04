@@ -33,8 +33,8 @@ dwi_load_config() {
   QSIRECON_AMICO_LMAX="${QSIRECON_AMICO_LMAX:-12}"
   QSIRECON_AMICO_NDIRS="${QSIRECON_AMICO_NDIRS:-500}"
   FMRIPREP_DERIVATIVES_DIR="${FMRIPREP_DERIVATIVES_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep}"
-  FREESURFER_SUBJECTS_DIR="${FREESURFER_SUBJECTS_DIR:-${FMRIPREP_DERIVATIVES_DIR}/sourcedata/freesurfer}"
-  FREESURFER_FALLBACK_SUBJECTS_DIR="${FREESURFER_FALLBACK_SUBJECTS_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer}"
+  FREESURFER_SUBJECTS_DIR="${FREESURFER_SUBJECTS_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer}"
+  FREESURFER_FALLBACK_SUBJECTS_DIR="${FREESURFER_FALLBACK_SUBJECTS_DIR:-${FMRIPREP_DERIVATIVES_DIR}/sourcedata/freesurfer}"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist.txt"
 }
 
