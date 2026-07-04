@@ -196,4 +196,6 @@ extra derivative datasets plus `--fs-subjects-dir` for already-run anatomical
 outputs. The shared QSIRecon wrapper binds the shared fMRIPrep derivatives as
 `smriprep` and reuses the fMRIPrep `sourcedata/freesurfer` subjects directory
 when available, falling back to the legacy shared FreeSurfer derivatives
-directory.
+directory. For ACT-hsvs, the wrapper mounts the resolved host FreeSurfer subject
+directory at a canonical `/freesurfer/sub-<label>` path so QSIRecon can find it
+even if the host-side directory uses a different session-specific name.

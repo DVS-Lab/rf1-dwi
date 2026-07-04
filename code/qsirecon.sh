@@ -65,6 +65,9 @@ qsirecon_nprocs="${QSIRECON_NPROCS:-$QSIRECON_TOTAL_NPROCS}"
 qsirecon_omp_nthreads="${QSIRECON_OMP_NTHREADS:-8}"
 qsirecon_mem_mb="${QSIRECON_MEM_MB:-$QSIRECON_TOTAL_MEM_MB}"
 container_dipy_home="/opt/dipy"
+container_freesurfer_dir="/freesurfer"
+container_freesurfer_subject_dir="${container_freesurfer_dir}/sub-${sub}"
+scratch_freesurfer_dir="${scratchdir}/freesurfer"
 require_freesurfer_subject=0
 require_freesurfer_hsvs=0
 if [[ "$recon_spec" == *"ACT-hsvs"* ]]; then
@@ -74,7 +77,21 @@ fi
 
 dwi_require_dir "$qsiprepdir"
 dwi_require_dir "$FMRIPREP_DERIVATIVES_DIR"
-freesurfer_subjects_dir="$(dwi_resolve_freesurfer_subjects_dir "$sub" "$require_freesurfer_subject" "$require_freesurfer_hsvs")"
+freesurfer_subjects_dir=""
+freesurfer_subject_dir=""
+freesurfer_container_args=()
+if ((require_freesurfer_subject)); then
+  freesurfer_subject_dir="$(dwi_resolve_freesurfer_subject_dir "$sub" "$require_freesurfer_hsvs")"
+  freesurfer_container_args=(
+    -B "${scratch_freesurfer_dir}:${container_freesurfer_dir}"
+    -B "${freesurfer_subject_dir}:${container_freesurfer_subject_dir}:ro"
+  )
+else
+  freesurfer_subjects_dir="$(dwi_resolve_freesurfer_subjects_dir "$sub" 0 0)"
+  freesurfer_container_args=(
+    -B "${freesurfer_subjects_dir}:${container_freesurfer_dir}:ro"
+  )
+fi
 python3 "${SCRIPT_DIR}/check_qsiprep_outputs.py" "$BIDS_ROOT" "$qsiprepdir" "$sub" --outputs-only
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${SCRIPT_DIR}/check_qsirecon_outputs.py" "$outdir" "$sub" --workflow "$workflow" --quiet; then
@@ -95,7 +112,7 @@ container_args=(
   -B "${DIPY_HOME_HOST}:${container_dipy_home}"
   -B "${PROJECT_ROOT}:/base"
   -B "${FMRIPREP_DERIVATIVES_DIR}:/smriprep:ro"
-  -B "${freesurfer_subjects_dir}:/freesurfer:ro"
+  "${freesurfer_container_args[@]}"
   -B "${LICENSES_DIR}:/opts"
   -B "${scratchdir}:/scratch"
 )
@@ -140,7 +157,12 @@ if ((${#amico_setup_cmd[@]})); then
   printf ' %q' "${amico_setup_cmd[@]}"
   printf '\n'
 fi
-printf 'Using FreeSurfer subjects directory: %s\n' "$freesurfer_subjects_dir"
+if ((require_freesurfer_subject)); then
+  printf 'Using FreeSurfer subject directory: %s\n' "$freesurfer_subject_dir"
+  printf 'Mounting FreeSurfer subject as: %s\n' "$container_freesurfer_subject_dir"
+else
+  printf 'Using FreeSurfer subjects directory: %s\n' "$freesurfer_subjects_dir"
+fi
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
@@ -150,6 +172,9 @@ if ((dry_run)); then
 fi
 
 mkdir -p "$outdir" "$scratchdir" "$DIPY_HOME_HOST"
+if ((require_freesurfer_subject)); then
+  mkdir -p "${scratch_freesurfer_dir}/sub-${sub}"
+fi
 dwi_require_file "$QSIRECON_IMAGE"
 dwi_require_file "${LICENSES_DIR}/fs_license.txt"
 if ((${#amico_setup_cmd[@]})); then
