@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash run_qsirecon-tractometry.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite]
+Usage: bash run_qsirecon-tractometry.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite] [--recon-spec SPEC]
 USAGE
 }
 
@@ -16,6 +16,7 @@ sublist="$BATCH_SUBLIST"
 max_jobs=1
 dry_run=0
 overwrite=0
+tractometry_recon_spec="${QSIRECON_TRACTOMETRY_RECON_SPEC:-/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti.yaml}"
 
 while (($#)); do
   case "$1" in
@@ -34,6 +35,10 @@ while (($#)); do
     --overwrite)
       overwrite=1
       shift
+      ;;
+    --recon-spec)
+      tractometry_recon_spec="$2"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -71,7 +76,6 @@ export QSIRECON_NPROCS QSIRECON_OMP_NTHREADS QSIRECON_MEM_MB
 echo "Using subject list: $sublist"
 echo "QSIRecon MRtrix/PyAFQ tractometry resource plan: up to ${max_jobs} subject job(s); each gets --nprocs ${QSIRECON_NPROCS}, --omp-nthreads ${QSIRECON_OMP_NTHREADS}, --mem ${QSIRECON_MEM_MB} MB"
 
-tractometry_recon_spec="${QSIRECON_TRACTOMETRY_RECON_SPEC:-/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_csd-fa50.yaml}"
 args=(--workflow tractometry --recon-spec "$tractometry_recon_spec")
 ((dry_run)) && args+=(--dry-run)
 ((overwrite)) && args+=(--overwrite)

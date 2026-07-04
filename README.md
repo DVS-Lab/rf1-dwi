@@ -193,10 +193,20 @@ bash run_logged.sh --label qsirecon-tractometry-smoke -- \
 ```
 
 The tractometry wrapper uses a local custom recon spec derived from
-`mrtrix_multishell_msmt_pyafq_tractometry`. The only intentional parameter
-change is `csd_fa_thr: 0.5` for PyAFQ, because the built-in PyAFQ default of
-`0.7` can fail response-function estimation when no voxels exceed that FA
-threshold. Set `QSIRECON_TRACTOMETRY_RECON_SPEC` to use a different spec.
+`mrtrix_multishell_msmt_pyafq_tractometry`. The default local spec keeps the
+external MRtrix tractography stage but configures PyAFQ with `odf_model: DTI`
+and `reg_subject_spec: dti_fa`, avoiding PyAFQ's internal CSD response-function
+estimation. The earlier CSD-threshold variant remains available under
+`code/recon_specs/`. Set `QSIRECON_TRACTOMETRY_RECON_SPEC` or pass
+`--recon-spec` to test a different spec.
+
+If tractometry fails, collect a compact diagnostic record before changing more
+parameters:
+
+```bash
+bash run_logged.sh --label qsirecon-tractometry-debug-sub-10317 -- \
+  bash debug_qsirecon_tractometry_inputs.sh 10317
+```
 
 ## Notes
 
