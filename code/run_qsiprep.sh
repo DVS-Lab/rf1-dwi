@@ -1,25 +1,95 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# ensure paths are correct
-maindir=~/work/rf1-dwi #this should be the only line that has to change if the rest of the script is set up correctly
-scriptdir=$maindir/code
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash run_qsiprep.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite]
+USAGE
+}
 
-mapfile -t myArray < ${scriptdir}/sublist.txt
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+dwi_load_config
 
-# make array based on what actually needs to be run
-for sub in ${myArray[@]}; do
-	dwi=${maindir}/derivatives/qsiprep/${sub}/dwi/${sub}_space-T1w_desc-preproc_dwi.nii.gz
-	html=${maindir}/derivatives/qsiprep/${sub}.html
-	if [ ! -e $dwi ] || [ ! -e $html ]; then
-		missingSubs+=( $sub )
-	fi
+sublist="$BATCH_SUBLIST"
+max_jobs=2
+dry_run=0
+overwrite=0
+
+while (($#)); do
+  case "$1" in
+    --sublist)
+      sublist="$2"
+      shift 2
+      ;;
+    --jobs)
+      max_jobs="$2"
+      shift 2
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --overwrite)
+      overwrite=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
 done
 
-ntasks=4
-counter=0
-while [ $counter -lt ${#missingSubs[@]} ]; do
-	subjects=${missingSubs[@]:$counter:$ntasks}
-	echo $subjects
-	let counter=$counter+$ntasks
-	qsub -v subjects="${subjects[@]}" qsiprep.qsub
-done
+if ! [[ "$max_jobs" =~ ^[1-9][0-9]*$ ]]; then
+  echo "--jobs must be a positive integer, got: $max_jobs" >&2
+  exit 2
+fi
+
+dwi_require_file "$sublist"
+dwi_require_file "${SCRIPT_DIR}/qsiprep.sh"
+dwi_require_bids_root "$BIDS_ROOT"
+
+if [[ -z "$QSIPREP_NPROCS" ]]; then
+  QSIPREP_NPROCS=$((QSIPREP_TOTAL_NPROCS / max_jobs))
+  ((QSIPREP_NPROCS < 1)) && QSIPREP_NPROCS=1
+fi
+if [[ -z "$QSIPREP_MEM_MB" ]]; then
+  QSIPREP_MEM_MB=$((QSIPREP_TOTAL_MEM_MB / max_jobs))
+  ((QSIPREP_MEM_MB < 8000)) && QSIPREP_MEM_MB=8000
+fi
+if ((QSIPREP_OMP_NTHREADS > QSIPREP_NPROCS)); then
+  QSIPREP_OMP_NTHREADS="$QSIPREP_NPROCS"
+fi
+export QSIPREP_NPROCS QSIPREP_OMP_NTHREADS QSIPREP_MEM_MB
+
+echo "Using subject list: $sublist"
+echo "QSIPrep resource plan: up to ${max_jobs} subject job(s); each gets --nprocs ${QSIPREP_NPROCS}, --omp-nthreads ${QSIPREP_OMP_NTHREADS}, --mem ${QSIPREP_MEM_MB} MB"
+
+args=()
+((dry_run)) && args+=(--dry-run)
+((overwrite)) && args+=(--overwrite)
+
+pids=()
+while IFS= read -r sub; do
+  dwi_wait_for_jobs "$max_jobs"
+  echo "Launching QSIPrep sub-${sub}"
+  bash "${SCRIPT_DIR}/qsiprep.sh" "${args[@]}" "$sub" &
+  pids+=("$!")
+done < <(dwi_read_subjects "$sublist")
+
+if ! dwi_wait_all "${pids[@]}"; then
+  if ((dry_run)); then
+    echo "CHECK FAILED: QSIPrep dry-run inputs incomplete for one or more of ${#pids[@]} subject(s)."
+  fi
+  exit 1
+fi
+
+if ((dry_run)); then
+  echo "CHECK PASSED: QSIPrep dry-run inputs and commands ready for ${#pids[@]} subject(s)."
+fi
