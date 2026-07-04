@@ -162,6 +162,10 @@ bash run_logged.sh --label qsirecon-ACThsvs-smoke -- \
   --check bash check_qsirecon-ACThsvs.sh --sublist "$SUBLIST"
 ```
 
+The ACT-hsvs workflow includes MRtrix connectivity estimation, so it needs at
+least one atlas. The wrapper defaults to the built-in `AAL116` atlas; override
+with `--atlases "AAL116 Gordon333Ext"` or `QSIRECON_ACT_ATLASES` if needed.
+
 For DSI Studio AutoTrack:
 
 ```bash

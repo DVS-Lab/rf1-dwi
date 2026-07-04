@@ -3,7 +3,9 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash run_qsirecon-ACThsvs.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite]
+Usage: bash run_qsirecon-ACThsvs.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite] [--atlases LIST]
+
+Atlas LIST may be comma- or space-separated when quoted. Default: AAL116.
 USAGE
 }
 
@@ -16,6 +18,7 @@ sublist="$BATCH_SUBLIST"
 max_jobs=1
 dry_run=0
 overwrite=0
+atlases="${QSIRECON_ACT_ATLASES:-AAL116}"
 
 while (($#)); do
   case "$1" in
@@ -34,6 +37,14 @@ while (($#)); do
     --overwrite)
       overwrite=1
       shift
+      ;;
+    --atlases)
+      atlases="${2:-}"
+      if [[ -z "$atlases" ]]; then
+        usage
+        exit 2
+      fi
+      shift 2
       ;;
     -h|--help)
       usage
@@ -70,8 +81,9 @@ export QSIRECON_NPROCS QSIRECON_OMP_NTHREADS QSIRECON_MEM_MB
 
 echo "Using subject list: $sublist"
 echo "QSIRecon ACT-hsvs resource plan: up to ${max_jobs} subject job(s); each gets --nprocs ${QSIRECON_NPROCS}, --omp-nthreads ${QSIRECON_OMP_NTHREADS}, --mem ${QSIRECON_MEM_MB} MB"
+echo "QSIRecon ACT-hsvs atlases: $atlases"
 
-args=(--workflow ACThsvs --recon-spec mrtrix_multishell_msmt_ACT-hsvs)
+args=(--workflow ACThsvs --recon-spec mrtrix_multishell_msmt_ACT-hsvs --atlases "$atlases")
 ((dry_run)) && args+=(--dry-run)
 ((overwrite)) && args+=(--overwrite)
 

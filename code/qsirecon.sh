@@ -3,10 +3,14 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash qsirecon.sh [--dry-run] [--overwrite] --workflow NAME --recon-spec SPEC SUBJECT
+Usage: bash qsirecon.sh [--dry-run] [--overwrite] [--atlases LIST] --workflow NAME --recon-spec SPEC SUBJECT
 
 Supported initial workflow:
   --workflow noddi --recon-spec amico_noddi
+
+Atlas LIST may be comma- or space-separated when quoted, for example:
+  --atlases AAL116
+  --atlases "AAL116 Gordon333Ext"
 USAGE
 }
 
@@ -19,6 +23,7 @@ dry_run=0
 overwrite=0
 workflow=""
 recon_spec=""
+atlas_values=()
 while (($#)); do
   case "$1" in
     --dry-run)
@@ -35,6 +40,17 @@ while (($#)); do
       ;;
     --recon-spec)
       recon_spec="$2"
+      shift 2
+      ;;
+    --atlases)
+      atlas_arg="${2:-}"
+      if [[ -z "$atlas_arg" ]]; then
+        usage
+        exit 2
+      fi
+      atlas_arg="${atlas_arg//,/ }"
+      read -r -a parsed_atlases <<< "$atlas_arg"
+      atlas_values+=("${parsed_atlases[@]}")
       shift 2
       ;;
     -h|--help)
@@ -135,12 +151,18 @@ if [[ "$recon_spec" == "amico_noddi" ]]; then
   )
 fi
 
+atlas_args=()
+if ((${#atlas_values[@]})); then
+  atlas_args=(--atlases "${atlas_values[@]}")
+fi
+
 cmd=(
   singularity run "${container_args[@]}"
   "$QSIRECON_IMAGE"
   /base/derivatives/qsiprep "$container_outdir"
   participant --participant-label "$sub"
   --recon-spec "$recon_spec"
+  "${atlas_args[@]}"
   --input-type qsiprep
   --datasets smriprep=/smriprep
   --fs-subjects-dir /freesurfer
@@ -162,6 +184,11 @@ if ((require_freesurfer_subject)); then
   printf 'Mounting FreeSurfer subject as: %s\n' "$container_freesurfer_subject_dir"
 else
   printf 'Using FreeSurfer subjects directory: %s\n' "$freesurfer_subjects_dir"
+fi
+if ((${#atlas_values[@]})); then
+  printf 'QSIRecon atlases:'
+  printf ' %s' "${atlas_values[@]}"
+  printf '\n'
 fi
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
