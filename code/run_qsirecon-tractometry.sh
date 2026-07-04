@@ -71,7 +71,8 @@ export QSIRECON_NPROCS QSIRECON_OMP_NTHREADS QSIRECON_MEM_MB
 echo "Using subject list: $sublist"
 echo "QSIRecon MRtrix/PyAFQ tractometry resource plan: up to ${max_jobs} subject job(s); each gets --nprocs ${QSIRECON_NPROCS}, --omp-nthreads ${QSIRECON_OMP_NTHREADS}, --mem ${QSIRECON_MEM_MB} MB"
 
-args=(--workflow tractometry --recon-spec mrtrix_multishell_msmt_pyafq_tractometry)
+tractometry_recon_spec="${QSIRECON_TRACTOMETRY_RECON_SPEC:-/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_csd-fa50.yaml}"
+args=(--workflow tractometry --recon-spec "$tractometry_recon_spec")
 ((dry_run)) && args+=(--dry-run)
 ((overwrite)) && args+=(--overwrite)
 

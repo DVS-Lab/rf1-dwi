@@ -192,6 +192,12 @@ bash run_logged.sh --label qsirecon-tractometry-smoke -- \
   --check bash check_qsirecon-tractometry.sh --sublist "$SUBLIST"
 ```
 
+The tractometry wrapper uses a local custom recon spec derived from
+`mrtrix_multishell_msmt_pyafq_tractometry`. The only intentional parameter
+change is `csd_fa_thr: 0.5` for PyAFQ, because the built-in PyAFQ default of
+`0.7` can fail response-function estimation when no voxels exceed that FA
+threshold. Set `QSIRECON_TRACTOMETRY_RECON_SPEC` to use a different spec.
+
 ## Notes
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
