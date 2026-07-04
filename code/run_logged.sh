@@ -94,7 +94,7 @@ echo "Writing run record: $record"
 set +e
 (
   command_status=0
-  check_status=0
+  check_status=none
   final_status=0
 
   echo "RUN START: ${timestamp}"
@@ -122,11 +122,11 @@ set +e
   elif ((${#check_cmd[@]})); then
     check_status="skipped"
     echo
-    echo "CHECK SKIPPED: command failed, so post-run check was not launched."
+    echo "CHECK SKIPPED: command failed, so post-run outputs were not validated."
   fi
 
   final_status="$command_status"
-  if [[ "$check_status" != "skipped" ]] && ((check_status != 0)); then
+  if [[ "$check_status" =~ ^[0-9]+$ ]] && ((check_status != 0)); then
     final_status="$check_status"
   fi
   {
@@ -148,11 +148,23 @@ fi
 
 summary="$(grep -E 'CHECK (PASSED|FAILED):' "$raw_log" | tail -n 1 || true)"
 [[ -n "$summary" ]] || summary="$(grep -E 'CHECK SKIPPED:' "$raw_log" | tail -n 1 || true)"
-[[ -n "$summary" ]] || summary="No CHECK PASSED/FAILED line found."
+if [[ -z "$summary" ]]; then
+  if [[ "$COMMAND_STATUS" != "0" ]]; then
+    if [[ "$CHECK_STATUS" == "none" ]]; then
+      summary="COMMAND FAILED: exit ${COMMAND_STATUS}; no check command was provided."
+    else
+      summary="COMMAND FAILED: exit ${COMMAND_STATUS}; check status ${CHECK_STATUS}."
+    fi
+  elif [[ "$CHECK_STATUS" == "none" ]]; then
+    summary="COMMAND COMPLETED: no check command provided."
+  else
+    summary="No CHECK PASSED/FAILED line found."
+  fi
+fi
 include_tail=0
 if [[ "$COMMAND_STATUS" != "0" ]]; then
   include_tail=1
-elif [[ "$CHECK_STATUS" != "none" && "$CHECK_STATUS" != "0" ]]; then
+elif [[ "$CHECK_STATUS" != "none" && "$CHECK_STATUS" != "skipped" && "$CHECK_STATUS" != "0" ]]; then
   include_tail=1
 fi
 

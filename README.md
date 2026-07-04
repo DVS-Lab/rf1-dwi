@@ -192,23 +192,24 @@ bash run_logged.sh --label qsirecon-tractometry-smoke -- \
   --check bash check_qsirecon-tractometry.sh --sublist "$SUBLIST"
 ```
 
-The tractometry wrapper uses a local custom recon spec derived from
-`mrtrix_multishell_msmt_pyafq_tractometry`. The default local test spec keeps
-the external MRtrix tractography stage but configures PyAFQ with `odf_model:
-DTI`, `reg_subject_spec: power_map`, and `scalars: "[]"`. This tests whether
-PyAFQ registration and segmentation can run without the CSD response-function
-path that failed in the stock workflow, and without using symbolic `dti_fa` as
-a literal registration image path. The earlier CSD-threshold and DTI/`dti_fa`
-variants remain available under `code/recon_specs/`. Set
-`QSIRECON_TRACTOMETRY_RECON_SPEC` or pass `--recon-spec` to test a different
-spec.
+The tractometry wrapper defaults to QSIRecon's built-in
+`mrtrix_multishell_msmt_pyafq_tractometry` spec. Experimental local variants
+remain under `code/recon_specs/` for provenance, including the failed
+CSD-threshold, DTI/`dti_fa`, and DTI/power-map/empty-scalar tests. Do not use
+the empty-scalar variant as a default: installed PyAFQ indexes the first scalar
+entry when `scalars` is provided, so `scalars: "[]"` is invalid in this
+workflow. Set `QSIRECON_TRACTOMETRY_RECON_SPEC` or pass `--recon-spec` only
+after confirming the installed QSIRecon/PyAFQ interface expects that format.
 
-If tractometry fails, collect a compact diagnostic record before changing more
+If tractometry fails, collect compact diagnostic records before changing more
 parameters:
 
 ```bash
 bash run_logged.sh --label qsirecon-tractometry-debug-sub-10317 --include-full-log -- \
   bash debug_qsirecon_tractometry_inputs.sh 10317
+
+bash run_logged.sh --label qsirecon-pyafq-interface --include-full-log -- \
+  bash debug_qsirecon_pyafq_interface.sh
 ```
 
 ## Notes
