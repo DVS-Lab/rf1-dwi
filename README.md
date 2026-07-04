@@ -224,7 +224,7 @@ The QSIRecon 26.0.0/PyAFQ 2.0 interface diagnostic showed that PyAFQ accepts a
 non-empty scalar list of internal scalar task names, including `dti_fa` and
 `dti_md`, while `reg_subject_spec: dti_fa` is treated as a path-like
 registration target. Before creating another tractometry YAML, inspect the
-installed PyAFQ mapping dictionary and choose a `reg_subject_spec` only from a
+installed PyAFQ mapping source and choose a `reg_subject_spec` only from a
 verified non-CSD key:
 
 ```bash

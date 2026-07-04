@@ -89,6 +89,13 @@ def print_text_file(path, max_chars=12000):
     print(f"\n... truncated after {max_chars} characters from {path}")
 
 
+def print_source_matches(label, source, terms):
+    heading(label)
+    for lineno, line in enumerate(source.splitlines(), start=1):
+        if any(term in line for term in terms):
+            print(f"{lineno}: {line}")
+
+
 import AFQ
 import AFQ.tasks.data as data
 import qsirecon
@@ -126,7 +133,30 @@ except Exception as exc:
     print(f"IMPORT FAILED: {exc!r}")
 else:
     heading("AFQ.tasks.mapping paths")
-    print(f"AFQ.tasks.mapping: {mapping.__file__}")
+    mapping_file = Path(mapping.__file__)
+    print(f"AFQ.tasks.mapping: {mapping_file}")
+    try:
+        mapping_source = mapping_file.read_text()
+    except (OSError, UnicodeDecodeError) as exc:
+        mapping_source = ""
+        print(f"Could not read mapping source: {exc!r}")
+    if mapping_source:
+        print_source_matches(
+            "AFQ.tasks.mapping source matches",
+            mapping_source,
+            (
+                "filename_dict",
+                "reg_subject_spec",
+                "power_map",
+                "b0",
+                "dti_fa",
+                "dti_md",
+                "csd",
+                "get_reg_subject",
+            ),
+        )
+        heading("AFQ.tasks.mapping full source")
+        print_text_file(mapping_file, max_chars=30000)
     filename_dict = getattr(mapping, "filename_dict", None)
     heading("AFQ.tasks.mapping.filename_dict")
     if filename_dict is None:
@@ -144,6 +174,28 @@ else:
         heading("AFQ.tasks.mapping.get_reg_subject source")
         print("get_reg_subject not found")
     else:
+        heading("AFQ.tasks.mapping.get_reg_subject object")
+        print(f"type: {type(get_reg_subject)!r}")
+        print(f"repr: {get_reg_subject!r}")
+        print("candidate attributes:")
+        for attr_name in (
+            "function",
+            "_function",
+            "fn",
+            "outputs",
+            "params",
+            "afferents",
+            "efferents",
+            "name",
+        ):
+            try:
+                attr_value = getattr(get_reg_subject, attr_name)
+            except Exception as exc:
+                print(f"- {attr_name}: ERROR {exc!r}")
+                continue
+            print(f"- {attr_name}: {attr_value!r}")
+            if attr_name in ("function", "_function", "fn"):
+                print_source(f"AFQ.tasks.mapping.get_reg_subject.{attr_name} source", attr_value)
         print_source("AFQ.tasks.mapping.get_reg_subject source", get_reg_subject)
 
 try:
