@@ -47,9 +47,6 @@ def check_base(out_root: Path, sub: str, quiet: bool) -> tuple[list[str], Path]:
         return missing, sub_root
     if not (out_root / "dataset_description.json").is_file():
         record_missing(missing, str(out_root / "dataset_description.json"), quiet)
-    reports = find_any(out_root, [f"**/sub-{sub}.html"])
-    if not reports:
-        record_warning(f"optional QSIRecon report not found under: {out_root}/**/sub-{sub}.html", quiet)
     if not sub_root.is_dir():
         record_missing(missing, str(sub_root), quiet)
     return missing, sub_root
