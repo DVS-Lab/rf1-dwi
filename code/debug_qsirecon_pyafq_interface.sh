@@ -29,6 +29,10 @@ source "${scriptdir}/pipeline_common.sh"
 dwi_load_config
 
 dwi_require_file "$QSIRECON_IMAGE"
+container_afq_home="/opt/AFQ_data"
+export APPTAINERENV_AFQ_HOME="$container_afq_home"
+export SINGULARITYENV_AFQ_HOME="$container_afq_home"
+mkdir -p "$AFQ_HOME_HOST"
 
 container_runtime="${SINGULARITY_CMD:-singularity}"
 if ! command -v "$container_runtime" >/dev/null 2>&1; then
@@ -45,12 +49,15 @@ printf 'Host: %s\n' "$(hostname 2>/dev/null || echo unknown)"
 printf 'User: %s\n' "$(whoami 2>/dev/null || echo unknown)"
 printf 'Container runtime: %s\n' "$container_runtime"
 printf 'QSIRecon image: %s\n' "$QSIRECON_IMAGE"
+printf 'Host AFQ_HOME_HOST: %s\n' "$AFQ_HOME_HOST"
+printf 'Container AFQ_HOME: %s\n' "$container_afq_home"
 printf '\n'
 
-"$container_runtime" exec "$QSIRECON_IMAGE" python - <<'PY'
+"$container_runtime" exec -B "${AFQ_HOME_HOST}:${container_afq_home}" "$QSIRECON_IMAGE" python - <<'PY'
 from importlib import metadata
 from pathlib import Path
 import inspect
+import os
 from pprint import pprint
 import sys
 
@@ -97,6 +104,7 @@ def print_source_matches(label, source, terms):
 
 
 import AFQ
+import AFQ.data.fetch as afq_fetch
 import AFQ.tasks.data as data
 import qsirecon
 import qsirecon.interfaces.pyafq as qpyafq
@@ -110,8 +118,22 @@ print(f"QSIRecon package: {qsirecon.__file__}")
 print(f"PyAFQ distribution: {dist_version('pyAFQ', 'pyafq', 'AFQ')}")
 print(f"AFQ __version__: {getattr(AFQ, '__version__', 'unknown')}")
 print(f"AFQ package: {AFQ.__file__}")
+print(f"AFQ.data.fetch: {afq_fetch.__file__}")
+print(f"AFQ_HOME: {os.environ.get('AFQ_HOME')}")
 print(f"QSIRecon PyAFQ interface: {qpyafq.__file__}")
 print(f"AFQ.tasks.data: {data.__file__}")
+
+try:
+    afq_fetch_source = Path(afq_fetch.__file__).read_text()
+except (OSError, UnicodeDecodeError) as exc:
+    heading("AFQ.data.fetch AFQ_HOME behavior")
+    print(f"Could not read AFQ.data.fetch source: {exc!r}")
+else:
+    print_source_matches(
+        "AFQ.data.fetch AFQ_HOME behavior",
+        afq_fetch_source,
+        ("AFQ_HOME", "AFQ_data", "afq_home", "expanduser"),
+    )
 
 print_source("qsirecon.interfaces.pyafq source", qpyafq)
 

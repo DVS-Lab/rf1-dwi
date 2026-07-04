@@ -14,6 +14,7 @@ dwi_load_config() {
   MPLCONFIGDIR_HOST="${TOOLS_ROOT}/mplconfigdir"
   LICENSES_DIR="${TOOLS_ROOT}/licenses"
   DIPY_HOME_HOST="${PROJECT_ROOT}/.cache/dipy"
+  AFQ_HOME_HOST="${AFQ_HOME_HOST:-${TOOLS_ROOT}/AFQ_data}"
 
   QSIPREP_VERSION="26.0.0"
   QSIPREP_IMAGE="${TOOLS_ROOT}/qsiprep-${QSIPREP_VERSION}.sif"

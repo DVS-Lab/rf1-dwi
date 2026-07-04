@@ -81,6 +81,7 @@ qsirecon_nprocs="${QSIRECON_NPROCS:-$QSIRECON_TOTAL_NPROCS}"
 qsirecon_omp_nthreads="${QSIRECON_OMP_NTHREADS:-8}"
 qsirecon_mem_mb="${QSIRECON_MEM_MB:-$QSIRECON_TOTAL_MEM_MB}"
 container_dipy_home="/opt/dipy"
+container_afq_home="/opt/AFQ_data"
 container_freesurfer_dir="/freesurfer"
 container_freesurfer_subject_dir="${container_freesurfer_dir}/sub-${sub}"
 scratch_freesurfer_dir="${scratchdir}/freesurfer"
@@ -118,6 +119,8 @@ fi
 export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
 export APPTAINERENV_DIPY_HOME="$container_dipy_home"
+export APPTAINERENV_AFQ_HOME="$container_afq_home"
+export SINGULARITYENV_AFQ_HOME="$container_afq_home"
 export APPTAINERENV_AMICO_LMAX="$QSIRECON_AMICO_LMAX"
 export APPTAINERENV_AMICO_NDIRS="$QSIRECON_AMICO_NDIRS"
 
@@ -126,6 +129,7 @@ container_args=(
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
   -B "${DIPY_HOME_HOST}:${container_dipy_home}"
+  -B "${AFQ_HOME_HOST}:${container_afq_home}"
   -B "${PROJECT_ROOT}:/base"
   -B "${FMRIPREP_DERIVATIVES_DIR}:/smriprep:ro"
   "${freesurfer_container_args[@]}"
@@ -190,6 +194,7 @@ if ((${#atlas_values[@]})); then
   printf ' %s' "${atlas_values[@]}"
   printf '\n'
 fi
+printf 'Using PyAFQ AFQ_HOME cache: %s -> %s\n' "$AFQ_HOME_HOST" "$container_afq_home"
 printf 'QSIRecon command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
@@ -198,7 +203,7 @@ if ((dry_run)); then
   exit 0
 fi
 
-mkdir -p "$outdir" "$scratchdir" "$DIPY_HOME_HOST"
+mkdir -p "$outdir" "$scratchdir" "$DIPY_HOME_HOST" "$AFQ_HOME_HOST"
 if ((require_freesurfer_subject)); then
   mkdir -p "${scratch_freesurfer_dir}/sub-${sub}"
 fi
