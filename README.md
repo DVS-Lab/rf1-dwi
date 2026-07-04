@@ -238,6 +238,20 @@ keeps `odf_model: DTI`, keeps `scalars: "['dti_fa', 'dti_md']"`, keeps
 subject first, then run `check_qsirecon-tractometry.sh` before expanding to the
 two-subject smoke list.
 
+The mapping source diagnostic confirmed these PyAFQ 2.0 mappings:
+`power_map -> csd_pmap`, `b0 -> b0`, `dti_fa_subject -> dti_fa`, and
+`subject_sls -> b0`. The next one-subject diagnostic uses `b0` as the
+registration target because it avoids the CSD-derived `csd_pmap` route:
+
+```bash
+bash run_logged.sh --label qsirecon-tractometry-smoke-one-dti-b0-scalars -- \
+  bash run_qsirecon-tractometry.sh \
+    --sublist ../logs/dwi-smoke-test/sublist-qsirecon-one.txt \
+    --jobs 1 \
+    --overwrite \
+    --recon-spec /base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
+```
+
 ## Notes
 
 QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
