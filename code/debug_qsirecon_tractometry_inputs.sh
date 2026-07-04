@@ -165,6 +165,11 @@ print_matches "Scratch Tractograms and Bundles" "$scratch_dir" \
 print_path_matches "PyAFQ Shim Inputs and Outputs" "$scratch_dir" \
   "*/pyafq_tractometry/run_afq/study/subject/*"
 
+print_path_matches "Tensor Scalar Search" "$scratch_dir" \
+  "*[Ff][Aa]*.nii.gz" "*[Mm][Dd]*.nii.gz" "*[Dd][Tt][Ii]*" "*[Tt][Ee][Nn][Ss][Oo][Rr]*"
+print_path_matches "Tensor Scalar Search" "$tractometry_dir" \
+  "*[Ff][Aa]*.nii.gz" "*[Mm][Dd]*.nii.gz" "*[Dd][Tt][Ii]*" "*[Tt][Ee][Nn][Ss][Oo][Rr]*"
+
 print_matches "PyAFQ Profiles" "$tractometry_dir" \
   "*tract_profiles*.csv" "*profiles*.csv" "*nodes*.csv"
 print_matches "QSIRecon Crash Files" "$tractometry_dir" \

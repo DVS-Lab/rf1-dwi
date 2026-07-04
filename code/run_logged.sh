@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash run_logged.sh [--label LABEL] -- COMMAND [ARGS...] [--check CHECK_COMMAND [ARGS...]]
+Usage: bash run_logged.sh [--label LABEL] [--include-full-log] -- COMMAND [ARGS...] [--check CHECK_COMMAND [ARGS...]]
 
 Runs COMMAND, writes one timestamped raw log under ignored logs/runs/, and
 writes one compact Git-trackable record under logs/records/.
@@ -16,11 +16,16 @@ source "${scriptdir}/pipeline_common.sh"
 dwi_load_config
 
 label=""
+include_full_log=0
 while (($#)); do
   case "$1" in
     --label)
       label="$2"
       shift 2
+      ;;
+    --include-full-log)
+      include_full_log=1
+      shift
       ;;
     --)
       shift
@@ -178,7 +183,14 @@ fi
     echo "$check_string"
     echo '```'
   fi
-  if ((include_tail)); then
+  if ((include_full_log)); then
+    echo
+    echo "## Full Log"
+    echo
+    echo '```text'
+    cat "$raw_log"
+    echo '```'
+  elif ((include_tail)); then
     error_lines="$(grep -Ei 'error|traceback|exception|bids|validation|failed|not found|no such file|permission denied' "$raw_log" | tail -n 40 || true)"
     if [[ -n "$error_lines" ]]; then
       echo
