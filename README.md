@@ -1,66 +1,85 @@
 # DWI Processing and Analyses
 
-Analyses and processing for DWI using QSIprep.
+This repository contains Linux2 scripts for RF1 DWI preprocessing and
+reconstruction. The maintained workflow is:
 
-## Linux2 QSIPrep Smoke Test
+- preprocess DWI data with QSIPrep;
+- run selected QSIRecon reconstructions;
+- check that expected derivatives were written;
+- keep compact run records in Git while leaving large outputs out of Git.
 
-The maintained first-pass workflow is:
-
-1. Edit or create a subject list.
-2. Dry-run QSIPrep to confirm BIDS inputs and print the container commands.
-3. Run QSIPrep.
-4. Check QSIPrep outputs.
-
-The scripts assume the standard Linux2 paths:
-
-- Project checkout: current repository root
-- Shared BIDS root: `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids`
-- Tools: `/ZPOOL/data/tools`
-- Scratch: `/ZPOOL/data/scratch/<user>`
-- QSIPrep image: `/ZPOOL/data/tools/qsiprep-26.0.0.sif`
-- FreeSurfer license: `/ZPOOL/data/tools/licenses/fs_license.txt`
-
-The BIDS DWI dataset is not tracked in Git and should not be duplicated in this
-repository. The QSIPrep scripts bind the shared BIDS root as `/bids` inside the
-container and write outputs to this repository's `derivatives/qsiprep/`
-directory. Processing derivatives are ignored by Git; compact run records under
+Large derivatives are written under `derivatives/` and raw logs under
+`logs/runs/`; both are ignored by Git. Small Markdown summaries under
 `logs/records/` are intentionally trackable.
 
-Build the pinned QSIPrep container before running the workflow:
+## Where To Run Commands
+
+Run the processing commands on Linux2 from the repository's `code/` directory:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi/code
+```
+
+In the examples below:
+
+- `cd /path/to/folder` means "go to this folder".
+- `SUBLIST=...` saves a subject-list path so you do not have to retype it.
+- `JOBS=1` means run one subject/container at a time.
+- `\` means the same command continues on the next line.
+- `--` means `run_logged.sh` options stop there; the real command starts after it.
+- `--check` means run this check command after the main command succeeds.
+
+For a slower but easier-to-debug first pass, use `JOBS=1`.
+
+## Standard Paths
+
+The scripts assume these Linux2 paths unless you override the variables in the
+shell:
+
+| Item | Path |
+| --- | --- |
+| Project checkout | `/ZPOOL/data/projects/rf1-dwi` |
+| Shared BIDS root | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids` |
+| fMRIPrep derivatives | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep` |
+| FreeSurfer subjects | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer` |
+| Tools and containers | `/ZPOOL/data/tools` |
+| Scratch | `/ZPOOL/data/scratch/<user>` |
+| FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
+
+The BIDS DWI dataset is not tracked in Git and should not be copied into this
+repository.
+
+## One-Time Container Setup
+
+Build the pinned containers before running the workflow:
 
 ```bash
 cd /ZPOOL/data/tools
 apptainer build qsiprep-26.0.0.sif docker://pennlinc/qsiprep:26.0.0
 apptainer exec qsiprep-26.0.0.sif qsiprep --version
-```
 
-If this Linux2 shell uses `singularity` instead of `apptainer`, the equivalent
-commands are:
-
-```bash
-cd /ZPOOL/data/tools
-singularity build qsiprep-26.0.0.sif docker://pennlinc/qsiprep:26.0.0
-singularity exec qsiprep-26.0.0.sif qsiprep --version
-```
-
-Build the pinned QSIRecon container before running reconstruction workflows:
-
-```bash
-cd /ZPOOL/data/tools
 apptainer build qsirecon-26.0.0.sif docker://pennlinc/qsirecon:26.0.0
 apptainer exec qsirecon-26.0.0.sif qsirecon --version
 ```
 
-Or with `singularity`:
+If this Linux2 shell uses `singularity` instead of `apptainer`, use the same
+commands with `singularity`.
 
-```bash
-cd /ZPOOL/data/tools
-singularity build qsirecon-26.0.0.sif docker://pennlinc/qsirecon:26.0.0
-singularity exec qsirecon-26.0.0.sif qsirecon --version
-```
+## Shared Caches
 
-For the first small test, use the two subjects from the fMRI CIFTI test that are
-also present in this repository's DWI subject list:
+The scripts use these shared or pipeline-managed cache directories:
+
+- TemplateFlow: `/ZPOOL/data/tools/templateflow`
+- DIPY/AMICO: `<repo>/.cache/dipy`
+- PyAFQ `AFQ_data`: `/ZPOOL/data/tools/AFQ_data`
+
+PyAFQ normally defaults to `~/AFQ_data`. This repository sets `AFQ_HOME` inside
+the QSIRecon container so AFQ templates are shared across lab users instead of
+being downloaded separately into each user's home directory.
+
+## Subject Lists
+
+The standard two-subject smoke-test list is:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-dwi
@@ -68,198 +87,166 @@ mkdir -p logs/dwi-smoke-test
 printf '10317\n10953\n' > logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
 ```
 
-If the shared BIDS root has `sub-11982` and you want to include it, append it:
+For one-subject tractometry debugging, keep a separate one-line list:
 
 ```bash
-test -d /ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids/sub-11982 && \
-  printf '11982\n' >> logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+printf '10317\n' > logs/dwi-smoke-test/sublist-qsirecon-one.txt
 ```
 
-Dry-run:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
-JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
-bash run_logged.sh --label qsiprep-smoke-dry-run -- \
-  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
-```
-
-Run QSIPrep and then run the checker automatically:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
-JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
-bash run_logged.sh --label qsiprep-smoke -- \
-  bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS" \
-  --check bash check_qsiprep.sh --sublist "$SUBLIST"
-```
-
-`--jobs` controls how many subject-level QSIPrep containers run at once. The
-script divides the total resource budget across those jobs. By default, the
-budget is 96 CPU threads and 196000 MB RAM, so `--jobs 2` gives each subject
-`--nprocs 48`, `--omp-nthreads 8`, and `--mem 98000`.
-
-Raw logs are written to ignored `logs/runs/`. Small Markdown run records are
-written to tracked `logs/records/`.
-
-## Linux2 QSIRecon NODDI Smoke Test
-
-Run this after `check_qsiprep.sh` passes for the same subject list:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
-JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
-
-bash run_logged.sh --label qsirecon-noddi-smoke-dry-run -- \
-  bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
-```
-
-If the dry-run passes, launch NODDI and run the checker:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
-JOBS="$(python3 print_subjects.py "$SUBLIST" | wc -l | tr -d ' ')"
-
-bash run_logged.sh --label qsirecon-noddi-smoke -- \
-  bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS" \
-  --check bash check_qsirecon-noddi.sh --sublist "$SUBLIST"
-```
-
-The initial QSIRecon smoke test uses `--recon-spec amico_noddi` and writes to
-`derivatives/qsirecon-noddi/`. Other recon specs should stay split into their
-own wrappers because they have different dependencies and output checks.
-The NODDI output checker gates on scalar maps and treats the top-level HTML
-report as optional because QSIRecon 26.0.0 may finish successfully without
-writing `sub-*.html` at the output root.
-
-The NODDI wrapper prepares AMICO's required rotation-matrix cache before
-launching QSIRecon. The cache lives under ignored `.cache/dipy/` and is bound
-into the container as `DIPY_HOME`, so subsequent NODDI reruns can reuse it.
-
-## Additional QSIRecon Smoke Tests
-
-The legacy qsub submission scripts remain in `code/`, but the maintained smoke
-wrappers use the same `run_logged.sh` pattern as NODDI:
+Start each shell session with:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-dwi/code
 SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
 JOBS=1
+TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
 ```
 
-For ACT-hsvs:
+## Recommended Order
+
+| Step | What to run | What success looks like |
+| --- | --- | --- |
+| 1 | QSIPrep dry run | `CHECK PASSED` dry-run message |
+| 2 | QSIPrep | command exits 0 |
+| 3 | QSIPrep check | `CHECK PASSED` |
+| 4 | NODDI | command exits 0 |
+| 5 | NODDI check | `CHECK PASSED` |
+| 6 | ACT-hsvs | command exits 0 |
+| 7 | ACT-hsvs check | `CHECK PASSED` |
+| 8 | DSI AutoTrack | command exits 0 |
+| 9 | DSI AutoTrack check | `CHECK PASSED` |
+| 10 | Tractometry with the DTI/b0/scalars spec | command exits 0 |
+| 11 | Tractometry check | `CHECK PASSED` |
+
+## Everyday Use
+
+### QSIPrep
+
+Dry-run first:
 
 ```bash
-bash run_logged.sh --label qsirecon-ACThsvs-smoke-dry-run -- \
-  bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
-
-bash run_logged.sh --label qsirecon-ACThsvs-smoke -- \
-  bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS" \
-  --check bash check_qsirecon-ACThsvs.sh --sublist "$SUBLIST"
+bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
 ```
 
-The ACT-hsvs workflow includes MRtrix connectivity estimation, so it needs at
-least one atlas. The wrapper defaults to the built-in `AAL116` atlas; override
-with `--atlases "AAL116 Gordon333Ext"` or `QSIRECON_ACT_ATLASES` if needed.
-
-For DSI Studio AutoTrack:
+Run QSIPrep:
 
 ```bash
-bash run_logged.sh --label qsirecon-dsiautotrack-smoke-dry-run -- \
-  bash run_qsirecon-dsiautotrack.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
-
-bash run_logged.sh --label qsirecon-dsiautotrack-smoke -- \
-  bash run_qsirecon-dsiautotrack.sh --sublist "$SUBLIST" --jobs "$JOBS" \
-  --check bash check_qsirecon-dsiautotrack.sh --sublist "$SUBLIST"
+bash run_qsiprep.sh --sublist "$SUBLIST" --jobs "$JOBS"
 ```
 
-The DSI Studio AutoTrack checker gates on bundle streamlines plus the `.fib.gz`
-file. Bundle summary stats are reported when present, but are not required for
-the smoke-test pass.
-
-For MRtrix/PyAFQ tractometry:
+Check QSIPrep outputs:
 
 ```bash
-bash run_logged.sh --label qsirecon-tractometry-smoke-dry-run -- \
-  bash run_qsirecon-tractometry.sh --sublist "$SUBLIST" --jobs "$JOBS" --dry-run
-
-bash run_logged.sh --label qsirecon-tractometry-smoke -- \
-  bash run_qsirecon-tractometry.sh --sublist "$SUBLIST" --jobs "$JOBS" \
-  --check bash check_qsirecon-tractometry.sh --sublist "$SUBLIST"
+bash check_qsiprep.sh --sublist "$SUBLIST"
 ```
 
-The tractometry wrapper defaults to QSIRecon's built-in
-`mrtrix_multishell_msmt_pyafq_tractometry` spec. Experimental local variants
-remain under `code/recon_specs/` for provenance, including the failed
-CSD-threshold, DTI/`dti_fa`, DTI/power-map/empty-scalar, and
-DTI/power-map/scalar-list tests. Do not use the empty-scalar variant as a
-default: installed PyAFQ indexes the first scalar entry when `scalars` is
-provided, so `scalars: "[]"` is invalid in this workflow. The
-DTI/power-map/scalar-list variant also failed because `reg_subject_spec:
-power_map` routes PyAFQ into CSD-derived registration-map generation. Set
-`QSIRECON_TRACTOMETRY_RECON_SPEC` or pass `--recon-spec` only after confirming
-the installed QSIRecon/PyAFQ interface expects that format.
+`--jobs` controls how many subject-level containers run at once. The scripts
+divide the total resource budget across those jobs.
 
-Tractometry is not part of the currently validated smoke-test suite until PyAFQ
-writes actual tractometry products such as profiles, node-wise tables, or
-bundle outputs. MRtrix FODs, SIFT2 weights, and `.tck` streamlines alone are
-intermediate outputs and are not sufficient for a tractometry pass.
+### QSIRecon NODDI
 
-If tractometry fails, collect compact diagnostic records before changing more
-parameters:
+Run this only after `check_qsiprep.sh` passes for the same subject list.
 
 ```bash
-bash run_logged.sh --label qsirecon-tractometry-debug-sub-10317 --include-full-log -- \
-  bash debug_qsirecon_tractometry_inputs.sh 10317
-
-bash run_logged.sh --label qsirecon-pyafq-interface --include-full-log -- \
-  bash debug_qsirecon_pyafq_interface.sh
+bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS"
+bash check_qsirecon-noddi.sh --sublist "$SUBLIST"
 ```
 
-The QSIRecon 26.0.0/PyAFQ 2.0 interface diagnostic showed that PyAFQ accepts a
-non-empty scalar list of internal scalar task names, including `dti_fa` and
-`dti_md`, while `reg_subject_spec: dti_fa` is treated as a path-like
-registration target. Before creating another tractometry YAML, inspect the
-installed PyAFQ mapping source and choose a `reg_subject_spec` only from a
-verified non-CSD key:
+NODDI uses `amico_noddi` and writes to `derivatives/qsirecon-noddi/`. The
+checker gates on NODDI scalar maps.
+
+### QSIRecon ACT-hsvs
 
 ```bash
-bash run_logged.sh --label qsirecon-pyafq-interface-mapping --include-full-log -- \
-  bash debug_qsirecon_pyafq_interface.sh
+bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS"
+bash check_qsirecon-ACThsvs.sh --sublist "$SUBLIST"
 ```
 
-If a non-CSD registration target is confirmed, create a one-off test spec that
-keeps `odf_model: DTI`, keeps `scalars: "['dti_fa', 'dti_md']"`, keeps
-`use_external_tracking: true`, and changes only `reg_subject_spec`. Test one
-subject first, then run `check_qsirecon-tractometry.sh` before expanding to the
-two-subject smoke list.
-
-The mapping source diagnostic confirmed these PyAFQ 2.0 mappings:
-`power_map -> csd_pmap`, `b0 -> b0`, `dti_fa_subject -> dti_fa`, and
-`subject_sls -> b0`. The next one-subject diagnostic uses `b0` as the
-registration target because it avoids the CSD-derived `csd_pmap` route:
+The ACT-hsvs workflow uses the shared FreeSurfer outputs from the fMRIPrep
+project. It defaults to the built-in `AAL116` atlas. To use more atlases:
 
 ```bash
-bash run_logged.sh --label qsirecon-tractometry-smoke-one-dti-b0-scalars -- \
-  bash run_qsirecon-tractometry.sh \
-    --sublist ../logs/dwi-smoke-test/sublist-qsirecon-one.txt \
-    --jobs 1 \
-    --overwrite \
-    --recon-spec /base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
+bash run_qsirecon-ACThsvs.sh --sublist "$SUBLIST" --jobs "$JOBS" --atlases "AAL116 Gordon333Ext"
 ```
 
-## Notes
+### QSIRecon DSI Studio AutoTrack
 
-QSIPrep still requires a valid BIDS DWI dataset as input. Current QSIRecon
-reconstruction workflows are distributed separately from QSIPrep and support
-extra derivative datasets plus `--fs-subjects-dir` for already-run anatomical
-outputs. The shared QSIRecon wrapper binds the shared fMRIPrep derivatives as
-`smriprep` and reuses the shared FreeSurfer derivatives directory from the
-Linux2 fMRIPrep project. Those FreeSurfer subjects are session-qualified, such
-as `sub-10317_ses-01`. For ACT-hsvs, the wrapper mounts the resolved host
-FreeSurfer subject directory at a canonical `/freesurfer/sub-<label>` path so
-QSIRecon can find it.
+```bash
+bash run_qsirecon-dsiautotrack.sh --sublist "$SUBLIST" --jobs "$JOBS"
+bash check_qsirecon-dsiautotrack.sh --sublist "$SUBLIST"
+```
+
+The checker requires bundle streamlines plus the `.fib.gz` file. Bundle summary
+statistics are reported when present but are not required for the smoke-test
+pass.
+
+### QSIRecon MRtrix/PyAFQ Tractometry
+
+The validated tractometry smoke test uses the custom DTI/b0/scalars spec:
+
+```bash
+bash run_qsirecon-tractometry.sh \
+  --sublist "$SUBLIST" \
+  --jobs "$JOBS" \
+  --recon-spec "$TRACT_SPEC"
+
+bash check_qsirecon-tractometry.sh --sublist "$SUBLIST"
+```
+
+This spec uses `odf_model: DTI`, `reg_subject_spec: b0`,
+`scalars: "['dti_fa', 'dti_md']"`, and `use_external_tracking: true`.
+Tractometry should be called passing only after
+`check_qsirecon-tractometry.sh` prints `CHECK PASSED`.
+
+The built-in power-map/CSD tractometry route was not the validated path for
+this dataset. See [tractometry_debugging_history.md](docs/tractometry_debugging_history.md)
+for the debugging provenance.
+
+## Advanced: Logged Runs
+
+The everyday commands above print directly to the terminal. To save a raw log
+and a compact Git-tracked run record, wrap the same command in `run_logged.sh`:
+
+```bash
+bash run_logged.sh --label qsirecon-noddi-smoke -- \
+  bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS"
+
+bash run_logged.sh --label qsirecon-noddi-check -- \
+  bash check_qsirecon-noddi.sh --sublist "$SUBLIST"
+```
+
+The combined `--check` form is useful for compact smoke tests, but separate run
+and check commands are easier for new users to read. More examples are in
+[command_cheatsheet.md](docs/command_cheatsheet.md).
+
+## How To Know Whether It Worked
+
+Look for these signals:
+
+- `Command exit: 0` means the main command finished successfully.
+- `Check exit: 0` means the checker command passed.
+- `CHECK PASSED` is the easiest phrase to search for.
+- `Command exit: 0` without a checker is promising but not fully validated.
+- Raw logs are in `logs/runs/`.
+- Small run records are in `logs/records/`.
+
+Missing top-level QSIRecon HTML reports are not, by themselves, a failure. The
+QSIRecon checkers validate reconstruction products rather than assuming an
+fMRIPrep-style `sub-*.html` report at the output root.
+
+## Troubleshooting
+
+| Problem | Likely cause | What to do |
+| --- | --- | --- |
+| `Required file not found` | Wrong path or subject list | Check `SUBLIST` and make sure you are in `/ZPOOL/data/projects/rf1-dwi/code` |
+| `Required file path is empty` | A shell variable such as `SUBLIST` was not set | Re-run the setup lines that define `SUBLIST`, `JOBS`, and `TRACT_SPEC` |
+| `BIDS root not found` | Linux2 shared BIDS path is missing | Check `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids` |
+| `CHECK FAILED` | Expected outputs are incomplete | Inspect `logs/records/`, then the matching raw log in `logs/runs/` |
+| Tractometry CSD response error | Wrong PyAFQ registration target for this dataset | Use and verify the DTI/b0/scalars spec |
+| No QSIRecon HTML report | Not necessarily a failure | Rely on the output checker |
+
+## More Details
+
+- [Command cheatsheet](docs/command_cheatsheet.md)
+- [Tractometry debugging history](docs/tractometry_debugging_history.md)
+- [Developer notes](docs/developer_notes.md)

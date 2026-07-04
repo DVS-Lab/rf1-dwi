@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# For simpler use, run the processing script and checker separately. The
+# combined --check form is for compact logged smoke tests.
+
 usage() {
   cat >&2 <<'USAGE'
 Usage: bash run_logged.sh [--label LABEL] [--include-full-log] -- COMMAND [ARGS...] [--check CHECK_COMMAND [ARGS...]]
 
 Runs COMMAND, writes one timestamped raw log under ignored logs/runs/, and
 writes one compact Git-trackable record under logs/records/.
+
+The -- marker means run_logged.sh options stop there and the real command
+starts after it. The optional --check marker starts a checker command that runs
+only after COMMAND exits 0.
 USAGE
 }
 
