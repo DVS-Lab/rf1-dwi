@@ -1,6 +1,6 @@
 # Command Cheatsheet
 
-This page explains the shell patterns used by the Linux2 smoke-test commands.
+This page explains the shell patterns used by the Linux2 validation commands.
 It is meant for users who can follow commands but do not live in Bash every day.
 
 ## Basic Pieces
@@ -85,7 +85,7 @@ The label becomes part of the log filename.
 The clearest pattern is to run the processing command and checker separately:
 
 ```bash
-bash run_logged.sh --label qsirecon-noddi-smoke -- \
+bash run_logged.sh --label qsirecon-noddi-run -- \
   bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS"
 
 bash run_logged.sh --label qsirecon-noddi-check -- \
@@ -94,11 +94,11 @@ bash run_logged.sh --label qsirecon-noddi-check -- \
 
 ## Combined Run And Check
 
-For compact smoke-test records, `run_logged.sh` can run a checker after the
+For compact validation records, `run_logged.sh` can run a checker after the
 main command succeeds:
 
 ```bash
-bash run_logged.sh --label qsirecon-noddi-smoke -- \
+bash run_logged.sh --label qsirecon-noddi-run -- \
   bash run_qsirecon-noddi.sh --sublist "$SUBLIST" --jobs "$JOBS" \
   --check bash check_qsirecon-noddi.sh --sublist "$SUBLIST"
 ```

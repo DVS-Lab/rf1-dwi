@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # For simpler use, run the processing script and checker separately. The
-# combined --check form is for compact logged smoke tests.
+# combined --check form is for compact logged validation runs.
 
 usage() {
   cat >&2 <<'USAGE'

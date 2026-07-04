@@ -5,7 +5,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage: bash run_qsirecon-tractometry.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite] [--recon-spec SPEC]
 
-Validated smoke-test spec:
+Validated tractometry spec:
   /base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
 USAGE
 }

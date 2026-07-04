@@ -77,6 +77,7 @@ bash run_logged.sh --label qsirecon-tractometry-dry-run-afq-cache -- \
     --sublist "$SUBLIST" \
     --jobs 1 \
     --dry-run \
+    --overwrite \
     --recon-spec "$TRACT_SPEC"
 ```
 
@@ -101,3 +102,21 @@ reports `Check exit: skipped`.
 Use `--include-full-log` for short diagnostics where the full output should be
 kept in the Git-tracked run record. Do not use it for long processing runs
 unless you intentionally want a large record.
+
+## Future Stage Launcher
+
+The primary workflow should remain the explicit stage scripts plus matching
+checkers, consistent with the RF1-SRA Linux2 pattern. If a convenience launcher
+is added later, make it a transparent stage orchestrator rather than a hidden
+`run_all.sh`:
+
+```bash
+bash run_dwi_stage.sh --list-stages
+bash run_dwi_stage.sh --stage qsiprep --dry-run
+bash run_dwi_stage.sh --stage noddi --run
+bash run_dwi_stage.sh --stage tractometry --check-only
+```
+
+It should print each stage's expected inputs, command, output directory, and
+checker before running anything. Avoid using `smoke` in new script names; use
+stage, validation, or workflow language instead.

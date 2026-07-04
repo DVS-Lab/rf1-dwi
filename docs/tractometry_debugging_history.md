@@ -1,6 +1,6 @@
 # Tractometry Debugging History
 
-The validated QSIRecon MRtrix/PyAFQ tractometry smoke test for this dataset is
+The validated QSIRecon MRtrix/PyAFQ tractometry workflow for this dataset is
 the custom DTI/b0/scalars spec:
 
 ```text
@@ -19,7 +19,7 @@ Validated records:
 - `logs/records/20260704-165224_qsirecon-tractometry-check-one-dti-b0-scalars.md`
 - `logs/records/20260704-165244_qsirecon-tractometry-smoke-dti-b0-scalars.md`
 
-The two-subject smoke record reports `Command exit: 0`, `Check exit: 0`, and:
+The two-subject validation record reports `Command exit: 0`, `Check exit: 0`, and:
 
 ```text
 CHECK PASSED: QSIRecon MRtrix/PyAFQ tractometry outputs complete for 2 subject(s).
@@ -37,8 +37,8 @@ container, the relevant mappings were:
 - `subject_sls -> b0`
 
 The built-in power-map path asks PyAFQ for a CSD-derived registration image.
-That route failed on this smoke dataset with a CSD response-function error. The
-validated DTI/b0/scalars spec keeps DTI modeling but uses the non-CSD `b0`
+That route failed on this validation dataset with a CSD response-function error.
+The validated DTI/b0/scalars spec keeps DTI modeling but uses the non-CSD `b0`
 registration target.
 
 ## Failed Or Experimental Variants
