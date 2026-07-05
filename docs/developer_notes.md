@@ -69,7 +69,7 @@ workflow:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=../logs/dwi-smoke-test/sublist-qsirecon-one.txt
+SUBLIST=../logs/validation/sublist-qsirecon-one.txt
 TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
 
 bash run_logged.sh --label qsirecon-tractometry-dry-run-afq-cache -- \
@@ -120,3 +120,7 @@ bash run_dwi_stage.sh --stage tractometry --check-only
 It should print each stage's expected inputs, command, output directory, and
 checker before running anything. Avoid using `smoke` in new script names; use
 stage, validation, or workflow language instead.
+
+Historical run records may still contain `smoke` in filenames. Treat those as
+provenance from workflow development, not as naming guidance for new production
+or validation artifacts.

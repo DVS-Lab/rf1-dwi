@@ -1,6 +1,7 @@
 # Command Cheatsheet
 
-This page explains the shell patterns used by the Linux2 validation commands.
+This page explains the shell patterns used by the Linux2 production and
+validation commands.
 It is meant for users who can follow commands but do not live in Bash every day.
 
 ## Basic Pieces
@@ -14,7 +15,7 @@ cd /ZPOOL/data/projects/rf1-dwi/code
 Save a value for later:
 
 ```bash
-SUBLIST=../logs/dwi-smoke-test/sublist-qsiprep-smoke.txt
+SUBLIST=sublist.txt
 JOBS=1
 TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
 ```
@@ -27,6 +28,17 @@ bash check_qsiprep.sh --sublist "$SUBLIST"
 
 The quotes around `"$SUBLIST"` are deliberate. They keep the value together if
 a path ever contains special shell characters.
+
+For a small validation run, keep the list separate from production:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi
+mkdir -p logs/validation
+printf '10317\n10953\n' > logs/validation/sublist-dwi-validation.txt
+
+cd code
+SUBLIST=../logs/validation/sublist-dwi-validation.txt
+```
 
 ## Line Continuation
 
@@ -94,7 +106,7 @@ bash run_logged.sh --label qsirecon-noddi-check -- \
 
 ## Combined Run And Check
 
-For compact validation records, `run_logged.sh` can run a checker after the
+For compact records, `run_logged.sh` can run a checker after the
 main command succeeds:
 
 ```bash

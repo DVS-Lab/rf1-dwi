@@ -138,6 +138,12 @@ dmypy.json
 .heudiconv
 
 # imaging output
+*.nii
+*.nii.gz
+*.bval
+*.bvec
+*.mat
+*.html
 derivatives/fmriprep/
 derivatives/noddi-masks/
 derivatives/qsiprep/
@@ -157,7 +163,8 @@ derivatives/sub-*.html
 !derivatives/noddi-summary.csv
 logs/*
 !logs/records/
+!logs/records/README.md
 !logs/records/*.md
 
 *.asv
-bids
+bids/

@@ -90,9 +90,11 @@ user="$(whoami 2>/dev/null || echo unknown)"
 cwd="$(pwd)"
 
 command_string="$(printf '%q ' "${cmd[@]}")"
+command_string="${command_string% }"
 check_string=""
 if ((${#check_cmd[@]})); then
   check_string="$(printf '%q ' "${check_cmd[@]}")"
+  check_string="${check_string% }"
 fi
 
 echo "Writing raw log: $raw_log"
@@ -156,7 +158,9 @@ fi
 summary="$(grep -E 'CHECK (PASSED|FAILED):' "$raw_log" | tail -n 1 || true)"
 [[ -n "$summary" ]] || summary="$(grep -E 'CHECK SKIPPED:' "$raw_log" | tail -n 1 || true)"
 if [[ -z "$summary" ]]; then
-  if [[ "$COMMAND_STATUS" != "0" ]]; then
+  if [[ "$CHECK_STATUS" == "skipped" ]]; then
+    summary="CHECK SKIPPED: command failed, so post-run outputs were not validated."
+  elif [[ "$COMMAND_STATUS" != "0" ]]; then
     if [[ "$CHECK_STATUS" == "none" ]]; then
       summary="COMMAND FAILED: exit ${COMMAND_STATUS}; no check command was provided."
     else
@@ -164,8 +168,10 @@ if [[ -z "$summary" ]]; then
     fi
   elif [[ "$CHECK_STATUS" == "none" ]]; then
     summary="COMMAND COMPLETED: no check command provided."
+  elif [[ "$CHECK_STATUS" == "0" ]]; then
+    summary="CHECK COMPLETED: exit 0; no CHECK PASSED/FAILED line found."
   else
-    summary="No CHECK PASSED/FAILED line found."
+    summary="CHECK FAILED: exit ${CHECK_STATUS}; no CHECK PASSED/FAILED line found."
   fi
 fi
 include_tail=0

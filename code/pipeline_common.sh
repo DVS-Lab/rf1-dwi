@@ -7,7 +7,7 @@ dwi_script_dir() {
 dwi_load_config() {
   SCRIPT_DIR="$(dwi_script_dir)"
   PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-  BIDS_ROOT="${BIDS_ROOT:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids}"
+  BIDS_ROOT="${BIDS_ROOT:-/ZPOOL/data/projects/rf1-sra-linux2/bids}"
   TOOLS_ROOT="${TOOLS_ROOT:-/ZPOOL/data/tools}"
   SCRATCH_ROOT="${SCRATCH_ROOT:-/ZPOOL/data/scratch}"
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"
@@ -33,8 +33,8 @@ dwi_load_config() {
   QSIRECON_MEM_MB="${QSIRECON_MEM_MB:-}"
   QSIRECON_AMICO_LMAX="${QSIRECON_AMICO_LMAX:-12}"
   QSIRECON_AMICO_NDIRS="${QSIRECON_AMICO_NDIRS:-500}"
-  FMRIPREP_DERIVATIVES_DIR="${FMRIPREP_DERIVATIVES_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep}"
-  FREESURFER_SUBJECTS_DIR="${FREESURFER_SUBJECTS_DIR:-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer}"
+  FMRIPREP_DERIVATIVES_DIR="${FMRIPREP_DERIVATIVES_DIR:-/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep}"
+  FREESURFER_SUBJECTS_DIR="${FREESURFER_SUBJECTS_DIR:-/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer}"
   FREESURFER_FALLBACK_SUBJECTS_DIR="${FREESURFER_FALLBACK_SUBJECTS_DIR:-${FMRIPREP_DERIVATIVES_DIR}/sourcedata/freesurfer}"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist.txt"
 }
