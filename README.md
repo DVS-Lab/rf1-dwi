@@ -17,7 +17,7 @@ Large derivatives are written under `derivatives/` and raw logs under
 `logs/runs/`; both are ignored by Git. Small Markdown summaries under
 `logs/records/` are intentionally trackable.
 
-## Upstream Boundary
+## Pipeline Map
 
 Run `rf1-sra-linux2` first. This DWI repository expects the shared BIDS,
 fMRIPrep, and FreeSurfer outputs from the production Linux2 checkout:
@@ -29,11 +29,8 @@ FREESURFER_SUBJECTS_DIR=/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurf
 ```
 
 The DWI workflow should not copy, regenerate, or track those upstream outputs.
-Historical validation paths such as
-`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` may appear in old run
-records, but they are not production defaults.
-
-## Pipeline Map
+Old validation checkout names are documented only in archive/developer notes;
+they are not production defaults.
 
 ```text
 rf1-sra-linux2 shared BIDS/fMRIPrep/FreeSurfer
@@ -53,37 +50,6 @@ rf1-sra-linux2 shared BIDS/fMRIPrep/FreeSurfer
 
 See `code/README.md` for a per-script implementation manual.
 
-## Production Setup
-
-Run production commands on Linux2 from the repository's `code/` directory:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi/code
-SUBLIST=sublist.txt
-JOBS=1
-TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
-```
-
-`code/sublist.txt` is the normal full-subject production list. It accepts one
-subject per line, comments, blank lines, and either `10001` or `sub-10001`
-forms.
-
-For a small validation run, keep a separate review-only list:
-
-```bash
-cd /ZPOOL/data/projects/rf1-dwi
-mkdir -p logs/validation
-printf '10317\n10953\n' > logs/validation/sublist-dwi-validation.txt
-
-cd code
-SUBLIST=../logs/validation/sublist-dwi-validation.txt
-JOBS=1
-TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
-```
-
-Do not replace `code/sublist.txt` with a tiny validation list unless the
-operator intentionally wants that list to become the current production list.
-
 ## Standard Paths
 
 The scripts assume these Linux2 paths unless the shell overrides them:
@@ -102,6 +68,55 @@ The scripts assume these Linux2 paths unless the shell overrides them:
 
 The BIDS dataset, derivative folders, container scratch, and raw logs are not
 tracked in Git.
+
+## Subject Lists
+
+Run production commands on Linux2 from the repository's `code/` directory:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi/code
+SUBLIST=sublist.txt
+JOBS=1
+TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
+```
+
+Use subject lists in this order:
+
+| Level | Purpose | Normal location |
+| --- | --- | --- |
+| Full production/cohort list | Run or verify all intended DWI participants. | `code/sublist.txt` |
+| New-batch/update list | Run a newly available subset before folding it into the full list. | Local operator list, commonly under `logs/batches/` |
+| Small validation list | Validate a workflow change with a few representative subjects. | Local operator list, commonly under `logs/validation/` |
+
+`code/sublist.txt` is the normal full-subject production list. It accepts one
+subject per line, comments, blank lines, and either `10001` or `sub-10001`
+forms. Do not replace it with a tiny validation list unless the operator
+intentionally wants that list to become the current production list.
+
+For a new-batch/update run, keep the subset separate and point the wrappers at
+it explicitly:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi
+mkdir -p logs/batches
+printf '12345\n12346\n' > logs/batches/sublist-dwi-batch-YYYYMMDD.txt
+
+cd code
+SUBLIST=../logs/batches/sublist-dwi-batch-YYYYMMDD.txt
+```
+
+For a small validation run, keep a separate review-only list:
+
+```bash
+cd /ZPOOL/data/projects/rf1-dwi
+mkdir -p logs/validation
+printf '10317\n10953\n' > logs/validation/sublist-dwi-validation.txt
+
+cd code
+SUBLIST=../logs/validation/sublist-dwi-validation.txt
+JOBS=1
+TRACT_SPEC=/base/code/recon_specs/mrtrix_multishell_msmt_pyafq_tractometry_dti-b0-scalars.yaml
+```
 
 ## One-Time Container Setup
 
@@ -131,7 +146,7 @@ QSIPrep and QSIRecon NODDI default to `--jobs 2` in their wrappers, but
 AutoTrack, and tractometry default to one job and should stay conservative
 unless Linux2 is quiet and the operator intentionally raises concurrency.
 
-## Full-Subject Production Workflow
+## Everyday Use
 
 Run each stage only after the previous stage's checker passes for the same
 subject list.
@@ -232,7 +247,7 @@ built-in power-map/CSD tractometry route was not the validated path for this
 dataset. See [tractometry debugging history](docs/tractometry_debugging_history.md)
 for the provenance.
 
-## Logged Runs
+## Advanced: Logged Runs
 
 The everyday commands above print directly to the terminal. To save a raw log
 and a compact Git-tracked run record, wrap the same command in `run_logged.sh`:
@@ -276,9 +291,9 @@ fMRIPrep-style `sub-*.html` report at the output root.
 
 ## Historical And Legacy Material
 
-Historical validation records may still use `smoke` in filenames because that
-was the original development naming convention. New docs and new validation
-lists should use `validation` or stage-specific names instead.
+Historical validation names are preserved in archive/developer notes for
+provenance. New docs and new validation lists should use `validation` or
+stage-specific names.
 
 Legacy qsub wrappers and old local fMRIPrep helpers remain in `code/` for
 provenance. They are documented in `code/README.md` but are not the default
